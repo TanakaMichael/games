@@ -1,0 +1,10 @@
+{
+    "MoveUp": "w",
+    "MoveDown": "s",
+    "MoveLeft": "a",
+    "MoveRight": "d",
+    "MouseLeft": "BUTTON_LEFT",
+    "MouseRight": "BUTTON_RIGHT",
+    "ScrollUp": "SCROLL_UP",
+    "ScrollDown": "SCROLL_DOWN"
+}
