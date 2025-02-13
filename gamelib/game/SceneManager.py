@@ -28,8 +28,12 @@ class SceneManager(Global):
         if self.current_scene is not None:
             self.current_scene.end()
         self.current_scene = self.scenes[name]
-        self.current_scene.start(**kwargs)
+        self.start_scene(**kwargs)
         return self.current_scene
+    
+    def start_scene(self, **kwargs):
+        """sceneにスタートを伝える"""
+        self.current_scene.start(**kwargs)
     def update(self, dt):
         """シーンの更新"""
         if self.current_scene is not None:

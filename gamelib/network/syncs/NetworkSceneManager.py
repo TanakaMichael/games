@@ -35,6 +35,7 @@ class NetworkSceneManager(SceneManager):
                 self.current_scene.add_network_object(new_obj)
         self.nm.send_to_server({"type": "force_sync_network_game_objects_components"})
         self.nm.complete_scene_sync = True # 同期完了！
+        self.start_scene()
 
     # Serverオンリー
     def send_network_scene_sync(self, network_manager, target_client_id):
