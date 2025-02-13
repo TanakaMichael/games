@@ -66,13 +66,13 @@ class NetworkSceneManager(SceneManager):
         """シーン同期の要請をClient -> Serverでする"""
         network_manager.send_to_server({
                 "type": "request_scene_sync", 
-                "sender_id": self.network_manager.local_steam_id
+                "sender_id": network_manager.local_steam_id
             })
 
     def receive_message(self, network_manager, message):
         t = message.get("type")
         if t == "scene_sync":
-            self.receive_message(network_manager, message)
+            self.receive_network_scene_sync(network_manager, message)
         elif t == "request_scene_sync":
             self.send_network_scene_sync(network_manager, message["sender_id"])
         #sceneからは、循環が発生しないのでnetwork_managerを送信する

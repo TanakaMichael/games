@@ -44,7 +44,7 @@ class NetworkManager(Global):
         self.net_id_generator = NetIDGenerator(self)
         self.missing_object_manager = MissingObjectManager(self)
 
-        self.components = [self.ping_meter, self.net_id_generator, self.missing_object_manager]
+        self.components = [self.ping_meter, self.net_id_generator]
 
         # セットアップ用のクラス
         self.server_setup = SetupServer(self)
