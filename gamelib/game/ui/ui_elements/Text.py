@@ -97,39 +97,62 @@ class Text(UIElement):
         return self.canvas_text_size
 
     def render(self, screen):
-        """文字ごとに色を適用して描画"""
         if self.visible and self.font:
             pos = self.rect_transform.get_render_position()
             total_width, total_height = self.font.size(self.value)
 
-            # **alignment に応じた開始位置の調整**
+            # alignment に応じた開始位置の調整（中心の場合）
             if self.alignment == "center":
                 start_x = pos.x - total_width / 2
             elif self.alignment == "right":
                 start_x = pos.x - total_width / 2
             else:  # "left"
-                start_x = pos.x + total_width
+                start_x = pos.x + total_width / 2
 
-            # **各文字ごとに描画**
+            # ピボットとしてテキストの中心位置を設定（ここでは pos を使用）
+            pivot = pygame.Vector2(pos.x, pos.y)
+
             current_x = start_x
             for i, char in enumerate(self.value):
                 color = self.char_colors.get(i, self.font_color)
                 char_surface = self.font.render(char, True, color)
-
-                # **回転の適用**
+                # 回転角度（degree）
                 angle = -self.rect_transform.global_rotation
-                rotated_char = pygame.transform.rotate(char_surface, angle)
+                rotated_char = pygame.transform.rotate(char_surface, -angle/2)
 
-                # **描画**
+                char_width = char_surface.get_width()
+                char_height = char_surface.get_height()
+
+                # 各文字の元の位置（文字を垂直方向中央揃え）
+                original_x = current_x
+                original_y = pos.y - char_height / 2
+
+                # ピボットを基準にした相対座標を求める
+                rel_x = original_x - pivot.x
+                rel_y = original_y - pivot.y
+
+                # 回転行列で相対座標を回転させる
+                rotated_rel_x, rotated_rel_y = rotate_point(rel_x, rel_y, angle/2)
+
+                # 最終的なスクリーン上の位置
+                final_x = pivot.x + rotated_rel_x
+                final_y = pivot.y + rotated_rel_y
+
                 char_rect = rotated_char.get_rect()
-                char_rect.topleft = (current_x, pos.y - char_rect.height / 2)
+                char_rect.topleft = (final_x, final_y)
                 screen.blit(rotated_char, char_rect)
 
-                # **次の文字位置に進める**
-                char_width = char_surface.get_width()
                 current_x += char_width
+
 
     def handle_event(self, event):
         """ウィンドウサイズ変更時にテキストサイズを調整"""
         if event.type == pygame.VIDEORESIZE:
             self.set_text(self.value)
+def rotate_point(x, y, angle):
+    """原点 (0,0) を基準に (x, y) を `angle` 度回転させた座標を返す"""
+    rad = math.radians(angle)
+    cos_a, sin_a = math.cos(rad), math.sin(rad)
+    new_x = x * cos_a - y * sin_a
+    new_y = x * sin_a + y * cos_a
+    return new_x, new_y

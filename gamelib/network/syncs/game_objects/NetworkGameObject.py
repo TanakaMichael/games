@@ -15,7 +15,6 @@ class NetworkGameObject(GameObject):
         self.steam_id = steam_id
         # receive_messageが非同期のため、
         self.initialized = False
-        name = name + f"_{self.network_id}"
         super().__init__(name, active, parent)
 
         self.add_component(NetworkTransform)
@@ -40,6 +39,9 @@ class NetworkGameObject(GameObject):
         # **コンポーネントの同期処理**
         for component in self.get_network_components():
             component.receive_message(message)
+        for child in self.children:
+            if hasattr(child, "receive_message"):
+                child.receive_message(message)
 
         # **強制同期メッセージを受信**
         if t == "force_sync_network_game_objects_components":
@@ -52,10 +54,8 @@ class NetworkGameObject(GameObject):
             component.force_sync()
     
     def sync_state(self):
-        """オブジェクトの状態 (active, steam_id) を同期する"""
-        parent_id = None
-        if self.parent:
-            parent_id = self.parent.network_id
+        """オブジェクトの状態を同期する"""
+        parent_id = self.parent.network_id if self.parent else None
         sync_data = {
             "type": "sync_network_object",
             "network_id": self.network_id,
@@ -63,7 +63,36 @@ class NetworkGameObject(GameObject):
             "steam_id": self.steam_id,
             "parent_id": parent_id
         }
-        self.network_manager.broadcast(sync_data)  # **全クライアントに同期を送信**
+        if self.network_manager.is_server:
+            self.network_manager.broadcast(sync_data)
+    def add_network_child(self, child):
+        """このオブジェクトに子オブジェクトを追加し、ネットワークに通知"""
+        self.add_child(child)
+        self.sync_state()  # **親子関係が変わるため同期**
+        data = {
+            "type": "add_network_child",
+            "parent_id": self.network_id,
+            "child_id": child.network_id,
+            "child_class": child.__class__.__name__,
+            "child_name": child.name,
+            "steam_id": child.steam_id
+        }
+        if self.network_manager.is_server:
+            self.network_manager.broadcast(data)
+        return child
+    def remove_network_child(self, child):
+        """子オブジェクトを削除し、クライアントに通知"""
+        if child in self.children:
+            self.children.remove(child)
+
+
+            self.sync_state()  # **親子関係が変わるため同期**
+            data = {
+                "type": "remove_network_child",
+                "network_id": child.network_id
+            }
+            if self.network_manager.is_server:
+                self.network_manager.broadcast(data)
 
     def update(self, dt):
         """毎フレーム実行: 状態の変化を監視し、必要なら同期"""

@@ -15,6 +15,7 @@ class GameObject:
         self.set_active(active)
 
         self.layer = 1
+        self.needs_sorting = False  # **ソートが必要かどうか**
 
         # **デフォルトで Transform を追加**
         self.transform = self.add_component(Transform, parent=parent.transform if parent else None)
@@ -25,14 +26,21 @@ class GameObject:
     def end(self):
         pass
     def add_child(self, child_object):
-        """子オブジェクトを追加"""
+        """子オブジェクトを追加し、ソートをトリガー"""
         if isinstance(child_object, GameObject):
             self.children.append(child_object)
             child_object.parent = self
             child_object.transform.set_parent(self.transform)
+            self.needs_sorting = True  # **新しく追加したらソートが必要**
             return child_object
         else:
             raise ValueError("子オブジェクトは GameObject である必要があります")
+
+    def remove_child(self, child_object):
+        """子オブジェクトを削除し、ソートをトリガー"""
+        if child_object in self.children:
+            self.children.remove(child_object)
+            self.needs_sorting = True  # **削除したらソートが必要**
     def set_parent(self, parent):
         self.parent = parent
     def add_component(self, component_class, *args, **kwargs) -> Component:
@@ -66,6 +74,8 @@ class GameObject:
         self.coroutine_manager.update(delta_time)
 
         # **子オブジェクトの更新**
+        if self.needs_sorting:
+            self.sort_children()  # **必要ならソート**
         for child in self.children:
             child.update(delta_time)
 
@@ -102,10 +112,23 @@ class GameObject:
     def trigger_event(self, event_name, **kwargs):
         """ローカルイベントを発火"""
         self.event_manager.trigger_event(event_name, **kwargs)
+
+    def sort_children(self):
+        """子オブジェクトをレイヤーとZ軸でソート"""
+        self.children.sort(key=lambda obj: (obj.layer, obj.transform.global_position.z))
+        self.needs_sorting = False  # **ソート完了後、フラグをリセット**
     def render(self, surface, camera):
+        """GameObjectを描画 (子オブジェクトをZ値 & レイヤーでソート)"""
         if not self.visible:
             return 
+
         for component in self.components.values():
             component.render(surface, camera)
+
+        # **ソートが必要なら実行**
+        if self.needs_sorting:
+            self.sort_children()
+
+        # **ソート済みの順番で子オブジェクトを描画**
         for child in self.children:
             child.render(surface, camera)

@@ -57,6 +57,8 @@ class Canvas:
             if hasattr(object, "end"):
                 object.end()  # **オブジェクトが `end()` を持っている場合のみ呼び出す**
         self.ui_objects.clear()
+    def end(self):
+        self.clear()
         # 以前はEvent式のInputのために使っていたがおそらく必要ない
     def _parse_position(self, position):
         """入力の local_position を適切な `pygame.Vector2` に変換"""

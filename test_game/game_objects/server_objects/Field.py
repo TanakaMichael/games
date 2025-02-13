@@ -11,7 +11,7 @@ from ..Block import Block
 import pygame
 # フィールドを親に、ブロックが設置される
 class Field(NetworkGameObject):
-    def __init__(self, name="Field", active=True, parent=None, network_id=None, steam_id=None, number=None):
+    def __init__(self, name="Field", active=True, parent=None, network_id=None, steam_id=None, number=None, position=None):
         super().__init__(name, active, parent, network_id, steam_id)
         self.network_manager = NetworkManager.get_instance()
         self.input_manager = InputManager.get_instance()
@@ -20,33 +20,55 @@ class Field(NetworkGameObject):
         self.move_right_action = self.input_manager.get_action("MoveRight")
         self.move_left_action = self.input_manager.get_action("MoveLeft")
         self.move_rotate_action = self.input_manager.get_action("Rotate")
+        self.move_down_action = self.input_manager.get_action("MoveDown")
         self.canvas = self.network_manager.scene_manager.current_scene.canvas
         members = self.network_manager.steam.get_all_lobby_members(self.network_manager.lobby_id)
+
         self.is_local_player = False
         if self.network_manager.is_server:
             if len(members) >= 2:
                 self.steam_id = members[number]
-        self.game_started = False
-        # 生成回数
-        self.generate_time = 1
-        self.minos = [TMino]
+            else:
+                # おそらくデバッグまたはオフライン起動(ユーザーは0番目のフィールドを使用する)
+                if number == 0:
+                    self.steam_id = self.network_manager.local_steam_id
+        self.field_number = number
         self.width = 10
         self.height = 20
-        self.fall_speed = 0.5
-        self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
 
-        self.active_mino = None
+        self.mino_size = 40
+        if position is None:
+            if number == 0:
+                self.transform.set_local_position(pygame.Vector2(-500 - (self.width * self.mino_size) + self.mino_size, -300))
+            elif number == 1:
+                self.transform.set_local_position(pygame.Vector2(500, -300))
 
-            
 
     def start(self):
         # initialize処理
         super().start()
+        if self.network_manager.is_server:
+            self.game_started = False
+            self.is_alive = True # ゲームの終了条件の一つとして使用するbool
+            self.running = False
+            self.active_mino = None
+            self.back_mino_image = "BackMino1.png"
+            self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
+            # 背景ブロック
+            for y in range(self.height):
+                for x in range(self.width):
+                    back = self.add_network_child(Block(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
+                    back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
+
+            # 生成回数
+            self.generate_time = 1
+            self.minos = [TMino]
+            self.fall_speed = 0.5
 
     def generate_block(self):
         """server側でブロックの生成patternを作成する"""
         index = self.generate_time * self.scene.seed % len(self.minos)
-        self.active_mino = self.scene.add_network_object(self.minos[index](parent=self))
+        self.active_mino = self.add_network_child(self.minos[index](parent=self, size=self.mino_size))
         self.generate_time += 1
 
 
@@ -54,14 +76,21 @@ class Field(NetworkGameObject):
         super().update(dt)
         if self.initialized and self.steam_id == self.network_manager.local_steam_id:
             if self.move_left_action.get_on_press():
-                self.network_manager.send_to_server({"type": "move","x": -1, "sender_id": self.network_manager.local_steam_id})
+                self.network_manager.send_to_server({"type": "move_left_mino", "sender_id": self.network_manager.local_steam_id}, True)
             if self.move_right_action.get_on_press():
-                self.network_manager.send_to_server({"type": "move","x": 1, "sender_id": self.network_manager.local_steam_id})
+                self.network_manager.send_to_server({"type": "move_right_mino", "sender_id": self.network_manager.local_steam_id}, True)
+            if self.move_down_action.get_on_press():
+                self.network_manager.send_to_server({"type": "move_down_mino", "sender_id": self.network_manager.local_steam_id}, True)
             if self.move_rotate_action.get_on_press():
-                self.network_manager.send_to_server({"type": "rotation", "sender_id": self.network_manager.local_steam_id})
+                self.network_manager.send_to_server({"type": "rotation", "sender_id": self.network_manager.local_steam_id, }, True)
 
     def on_fall_active_mino(self):
-        yield WaitForSeconds(self.fall_speed)
+        """fall関数を定期的に呼び出すコルーチン"""
+        while self.running:
+            yield WaitForSeconds(self.fall_speed)
+            self.fall()
+    def fall(self):
+        """ミノを落とすか設置するか決める"""
         if self.check_put():
             self.fix_active_mino()
         else:
@@ -75,21 +104,23 @@ class Field(NetworkGameObject):
                 y = int(block.position.y + self.active_mino.position.y)
 
                 # **ブロックを新しく作成し、ネットワークオブジェクトとして登録**
-                new_block = self.scene.add_network_object(Block(name="FixedBlock", 
+                new_block = self.add_network_child(Block(name="FixedBlock", 
                                                                 parent=self,  
                                                                 position=(x, y),
-                                                                image_path=self.active_mino.image_path
+                                                                image_path=self.active_mino.image_path,
+                                                                is_wall=True
                                                                 ))
                 new_blocks.append(new_block)
-                new_block.set_transform_position(pygame.Vector2(x, y))
+                new_block.set_transform_position(self.mino_size, pygame.Vector2(x, y))
                 self.grid[y][x] = new_block
                 # **ゲームオーバー判定**
                 if self.check_game_over(x, y):
                     self.trigger_game_over()
                     return
-
             # **active_mino を削除**
-            self.scene.remove_network_object(self.active_mino)
+            self.remove_network_child(self.active_mino)
+            self.clear_complete_lines()
+            self.generate_block()
 
             # **固定されたブロックは親子関係を持たず独立して存在**
             print(f"🧱 固定されたブロック: {len(new_blocks)} 個が配置されました。")
@@ -100,50 +131,46 @@ class Field(NetworkGameObject):
     def trigger_game_over(self):
         """ゲームオーバー処理を実行"""
         print("💀 ゲームオーバー！")
-        self.network_manager.broadcast({"type": "game_over", "loser": self.steam_id}, True)
+        self.network_manager.broadcast({"type": "game_over", "loser": self.steam_id, "field_number": self.field_number}, True)
         self.coroutine_manager.clear()
+        self.is_alive = False
+        self.running = False
 
 
     def clear_complete_lines(self):
         """ラインが完成しているかをチェックし、削除 & シフト処理"""
-        full_lines = []
-
-        # **完成したラインを探す**
-        for y in range(self.height):
-            if all(self.grid[y][x] is not None for x in range(self.width)):  
-                full_lines.append(y)
+        full_lines = [y for y in range(self.height) if all(self.grid[y][x] is not None for x in range(self.width))]
 
         if not full_lines:
             return  # 消えるラインなし
 
-        print(f"🔥 消去対象のライン: {full_lines}")
+        shift_map = get_shift_map(full_lines)  # {start_y: length} の辞書を取得
+        print(f"🔥 消去対象のライン: {shift_map}")
 
         # **ライン消去**
         for y in full_lines:
             for x in range(self.width):
                 block = self.grid[y][x]
                 if block:
-                    self.scene.remove_network_object(block)  # ネットワークオブジェクト削除
+                    self.remove_network_child(block)  # ネットワークオブジェクト削除
                 self.grid[y][x] = None  # グリッドの参照も削除
 
         # **上にあるブロックをシフト**
-        for y in reversed(range(self.height)):  # 上から下へ確認
-            if y in full_lines:  # 消えたラインなら無視
-                continue
+        for start_y, length in shift_map.items():
+            for y in reversed(range(start_y)):  # start_y の上のブロックを移動
+                for x in range(self.width):
+                    block = self.grid[y][x]
+                    if block:
+                        new_y = y + length  # 落下後のY位置
+                        if new_y < self.height:
+                            self.grid[new_y][x] = block
+                            self.grid[y][x] = None  # 元の位置をクリア
 
-            for x in range(self.width):
-                block = self.grid[y][x]
-                if block:
-                    new_y = y + len([line for line in full_lines if line > y])  # いくつ下に落ちるか
-                    if new_y < self.height:
-                        self.grid[new_y][x] = block
-                        self.grid[y][x] = None  # 元の位置をクリア
+                            # **ブロックの座標を更新**
+                            block.position.y = new_y
+                            block.set_transform_position(self.mino_size, pygame.Vector2(x, new_y))
 
-                        # **ブロックの座標を更新**
-                        block.position.y = new_y
-                        block.set_transform_position(pygame.Vector2(x, new_y))
-
-                        print(f"⬇ ブロック {block.name} を {y} → {new_y} に移動")
+                            print(f"⬇ ブロック {block.name} を {y} → {new_y} に移動")
 
 
     def fall_active_mino(self):
@@ -164,24 +191,31 @@ class Field(NetworkGameObject):
             self.game_started = True
             if self.network_manager.is_server:
                 # テトリスのメインの処理はserverのみが行う
+                self.running = True
                 self.generate_block()
                 self.coroutine_manager.start_coroutine(self.on_fall_active_mino)
-        elif message.get("type") == "move" and message["x"] == -1 and message["sender_id"] == self.steam_id:
+        if not self.running:
+            return
+        # 個々より先はgameが開始していることが条件の操作
+        elif message.get("type") == "move_left_mino" and message["sender_id"] == self.steam_id:
             self.move_left()
-        elif message.get("type") == "move" and message["x"] == 1 and message["sender_id"] == self.steam_id:
+        elif message.get("type") == "move_right_mino" and message["sender_id"] == self.steam_id:
             self.move_right()
         elif message.get("type") == "rotation" and message["sender_id"] == self.steam_id:
             self.rotation()
-        elif message.get("type") == "game_over":
+        elif message.get("type") == "move_down_mino" and message["sender_id"] == self.steam_id:
+            self.fall()
+        elif message.get("type") == "game_over" and message["field_number"] == self.field_number:
             # self.on_game_over(message)
             self.coroutine_manager.clear()
-            print(f"敗北者 : {message['sender_id']}" )
+            self.running = False
+            print(f"敗北者 : {message['loser']}" )
     def move_right(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
                 x = int(self.active_mino.position.x + block.position.x)
                 y = int(self.active_mino.position.y + block.position.y)
-                if x+1 >= self.wdith or self.grid[y][x+1] is not None:
+                if x+1 >= self.width or self.grid[y][x+1] is not None:
                     return False
             self.active_mino.move_right()
     def move_left(self):
@@ -189,21 +223,43 @@ class Field(NetworkGameObject):
             for block in self.active_mino.blocks:
                 x = int(self.active_mino.position.x + block.position.x)
                 y = int(self.active_mino.position.y + block.position.y)
-                if x-1 <= 0 or self.grid[y][x-1] is not None:
+                if x-1 <=-1 or self.grid[y][x-1] is not None:
                     return False
             self.active_mino.move_left()
     def rotation(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
-                x = int(-block.position.y)
-                y = int(block.position.x)
+                x = int(-block.position.y + self.active_mino.position.x)
+                y = int(block.position.x + self.active_mino.position.y)
                 if (x < 0 or x >= self.width) or (y < 0 or y >= self.height) :
-                    if self.grid[y][x] is not None:
-                        return False
+                    return False
+                if self.grid[y][x] is not None:
+                    return False
             self.active_mino.rotation()
 
 
 
         
+def get_shift_map(full_lines):
+    """消えたラインを {開始Y: 長さ} の辞書に変換"""
+    if not full_lines:
+        return {}
+
+    full_lines.sort(reverse=True)  # 上から消えていくので降順ソート
+    shift_map = {}  # `{start_y: length}` の辞書
+    start_y = full_lines[0]
+    length = 1
+
+    for i in range(1, len(full_lines)):
+        if full_lines[i] == full_lines[i - 1] - 1:  # 連続している
+            length += 1
+        else:
+            shift_map[start_y] = length  # 連続ブロック登録
+            start_y = full_lines[i]  # 新しいスタート地点
+            length = 1  # 長さリセット
+
+    shift_map[start_y] = length  # 最後のグループを登録
+
+    return shift_map
 
 NetworkObjectFactory.register_class(Field)

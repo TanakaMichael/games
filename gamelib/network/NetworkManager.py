@@ -67,10 +67,12 @@ class NetworkManager(Global):
             self.steam.accept_p2p_session(client_id)
             self.communication.send_message(client_id, message)
 
-    def send_to_server(self, message):
+    def send_to_server(self, message, send_server=False):
         if self.is_client:
             self.steam.accept_p2p_session(self.server_steam_id)
             self.communication.send_message(self.server_steam_id, message)
+        if self.is_server and send_server:
+            self.scene_manager.receive_message(self, message)
 
     def broadcast(self, message, send_server=False):
         for client_id in self.lobby_members.keys():

@@ -10,6 +10,7 @@ class Blocks(NetworkGameObject):
         self.blocks = []
         self.rotate = 1
         self.size = size
+        self.layer = 1
 
         self._size = size
         self._position = self.position.copy()

@@ -21,6 +21,10 @@ class Scene:
         self.cameras.append(camera)
         camera.set_scene(self)
         return camera
+    def get_camera(self, name):
+        for camera in self.cameras:
+            if camera.name == name:
+                return camera
     def remove_camera(self, camera):
         self.cameras.remove(camera)
     def get_object(self, name):
@@ -78,3 +82,6 @@ class Scene:
         for objects in self.objects:
             if hasattr(objects, "end"):
                 objects.end()
+        self.objects = []
+        self.cameras = []
+        self.canvas.end()
