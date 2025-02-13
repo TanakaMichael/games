@@ -23,8 +23,7 @@ class TestGame:
 
     def setup_scenes(self):
         """gameSceneを登録する"""
-        self.scene_manager.add_scene
-        MenuScene(self.screen)
+        self.scene_manager.add_scene(MenuScene(self.screen))
         self.scene_manager.add_scene(TetrisScene(self.screen))
         self.scene_manager.add_scene(LobbyScene(self.screen)) # serverを立てた後のlobbyscene(Game|Roleとか変えれる)
         self.scene_manager.set_active_scene("MenuScene")
