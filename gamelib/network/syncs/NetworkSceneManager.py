@@ -1,7 +1,7 @@
 from ...game.SceneManager import SceneManager
 from ...network.syncs.NetworkScene import NetworkScene
 from ..NetworkObjectFactory import NetworkObjectFactory
-
+import json
 from .NetworkScene import NetworkScene
 class NetworkSceneManager(SceneManager):
     def __init__(self):
@@ -23,7 +23,7 @@ class NetworkSceneManager(SceneManager):
         self.set_active_scene(scene_data["scene_name"])
         # ネットワーク関連のオブジェクトは削除する
         self.current_scene.clear_network_objects()
-        objects = scene_data["scene_data"]
+        objects = json.loads(scene_data["scene_data"])
         for obj_data in objects:
             new_obj = NetworkObjectFactory.create_object(
                 obj_data["class_name"], 
