@@ -31,6 +31,7 @@ class Blocks(NetworkGameObject):
         """下に一マス移動"""
         self.position.y += 1
     def update(self, dt):
+        super().update(dt)
         for block in self.blocks:
             position = pygame.Vector2(self.position.x +block.position.x, self.position.y + block.position.y)
             block.set_transform_position(self.size ,position)
@@ -38,10 +39,10 @@ class Blocks(NetworkGameObject):
             if self._size != self.size:
                 self._size = self.size
                 self.network_manager.broadcast({"type": "size", "network_id": self.network_id, "value": self.size})
-            if self._positoin.x != self.position.x:
+            if self._position.x != self.position.x:
                 self._position.x = self.position.x
                 self.network_manager.broadcast({"type": "position_x", "network_id": self.network_id, "value": self.position.x})
-            if self._positoin.y != self.position.y:
+            if self._position.y != self.position.y:
                 self._position.y = self.position.y
                 self.network_manager.broadcast({"type": "position_y", "network_id": self.network_id, "value": self.position.y})
     def receive_message(self, message):
