@@ -52,7 +52,7 @@ class NetworkSceneManager(SceneManager):
             self.current_scene.add_network_object(obj)
 
         # シーン開始
-        self.start_scene()
+        self.start_objects()
         nm.complete_scene_sync = True  # 同期完了！
         nm.send_to_server({"type": "force_sync_network_game_objects_components"})
 

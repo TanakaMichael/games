@@ -34,6 +34,13 @@ class SceneManager(Global):
     def start_scene(self, **kwargs):
         """sceneにスタートを伝える"""
         self.current_scene.start(**kwargs)
+    def start_objects(self):
+        for camera in self.current_scene.cameras:
+            if hasattr(camera, "start"):
+                camera.start()
+        for objects in self.current_scene.objects:
+            if hasattr(objects, "start"):
+                objects.start()
     def update(self, dt):
         """シーンの更新"""
         if self.current_scene is not None:

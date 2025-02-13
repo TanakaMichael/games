@@ -2,6 +2,7 @@ from gamelib.network.syncs.game_objects.NetworkGameObject import NetworkGameObje
 from .Blocks import Blocks
 from ..Block import Block
 from gamelib.game.component.Sprite import Sprite
+from gamelib.network.NetworkObjectFactory import NetworkObjectFactory
 import pygame
 class TMino(Blocks):
     def __init__(self, name="Block", active=True, parent=None, network_id=None, steam_id=None):
@@ -17,3 +18,4 @@ class TMino(Blocks):
             sprite = block.get_component(Sprite)
             sprite.load_image(self.image_path)
 
+NetworkObjectFactory.register_class(TMino)
