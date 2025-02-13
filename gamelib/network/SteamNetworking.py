@@ -218,12 +218,22 @@ class SteamNetworking:
         return self._send_p2p_message(steam_id, message)
 
     def receive_p2p_message(self, buffer_size=1024):
-        buffer = ctypes.create_string_buffer(buffer_size)
-        sender_id = ctypes.c_uint64(0)
+        buffer = ctypes.create_string_buffer(buffer_size)  # ✅ 受信用バッファ
+        sender_id = ctypes.c_uint64(0)  # ✅ 送信者ID格納用
+
         success = self._receive_p2p_message(buffer, buffer_size, ctypes.byref(sender_id))
+
         if success:
-            return buffer.value.decode('utf-8'), sender_id.value
+            if buffer.value and buffer.value != b'\x00' * buffer_size:  # ✅ データが空でないかチェック
+                decoded_message = buffer.value.decode('utf-8').strip('\x00')  # ✅ null終端を削除
+                print(f"📩 Received from {sender_id.value}: {decoded_message}")
+                return decoded_message, sender_id.value
+            else:
+                print(f"⚠️ Received empty message from {sender_id.value}")
+
         return None, None
+
+
 
     def close_all_p2p_sessions(self):
         self._close_all_p2p_sessions()

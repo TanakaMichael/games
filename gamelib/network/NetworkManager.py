@@ -121,6 +121,8 @@ class NetworkManager(Global):
         print("⚠️ ロビーから切断します...")
         self.connected = False
         self.running = False
+        self.is_client = False
+        self.is_server = False
         self.stop_all_threads()
         self.steam.leave_lobby(self.lobby_id)
         self.steam.close_all_p2p_sessions()
@@ -140,6 +142,7 @@ class NetworkManager(Global):
         success, steam_id, lobby_id = self.steam.check_lobby_join()
         if success:
             player_name = self.steam.get_steam_name(steam_id)
+            self.steam.accept_p2p_session(steam_id)
             print(f"✅ {player_name} (SteamID: {steam_id}) が ロビー {lobby_id} に参加しました！")
 
             # 🔹 参加者リストに追加
