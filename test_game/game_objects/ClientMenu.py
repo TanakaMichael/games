@@ -4,11 +4,15 @@ from gamelib.game.ui.ui_objects.InputBox import InputBox
 from gamelib.game.ui.component.FadeAnimation import FadeAnimation
 from gamelib.game.ui.component.MoveAnimation import MoveAnimation
 from gamelib.game.ui.ui_objects.MeshList import MeshList
+from gamelib.game.ui.ui_objects.MeshText import MeshText
+
+from gamelib.game.GlobalEventManager import GlobalEventManager
 
 from gamelib.network.NetworkManager import NetworkManager
 class ClientMenu(Panel):
     def __init__(self, canvas, name, active=False, parent=None):
         super().__init__(canvas, name, active, parent)
+        self.global_event_manager = GlobalEventManager.get_instance()
     def start(self):
         super().start()
         self.network_manager = NetworkManager.get_instance()
@@ -18,12 +22,16 @@ class ClientMenu(Panel):
         self.friend_btn = self.add_ui(MeshButtonText(canvas=self.canvas, name="Friend", position=("center-200", "top+120"), ui_text="Friend", font_height=80, font_alignment="center", correction_background_scale=(1.2,1.2), fixed_background_size=(300, 80)))
         
         self.return_btn = self.add_ui(MeshButtonText(canvas=self.canvas, name="return", position=("left+120", "top+120"), ui_text="Return", font_height=30, font_alignment="center", correction_background_scale=(1.2,1.2)))
+        
+        self.state_text = self.add_ui(MeshText(self.canvas, "State", "KH-Dot-Dougenzaka-12.ttf", position=("right-400", "bottom+120")))
         self.public_btn.on_click = self.on_public_click
         self.friend_btn.on_pressed = self.on_friend_click
         self.return_btn.on_click = self.on_return_click
     def on_lobby_click(self, index, lobby):
         lobby_id = extract_lobby_ids(lobby)
-        print(f"{index} : {lobby_id}")
+        if lobby_id:
+            self.state_text.set_text("アクセス中...")
+            self.network_manager.setup_client(int(lobby_id))
 
 
     def on_public_click(self):
@@ -44,12 +52,12 @@ class ClientMenu(Panel):
         self.set_active(False)
 
 # 安全なパーシング
-def extract_lobby_ids(friend_lobby_list):
+def extract_lobby_ids(friend_lobby):
     lobby_ids = []
-    for entry in friend_lobby_list:
-        parts = entry.split(" : ")
-        if len(parts) == 2:
-            lobby_ids.append(parts[1])
-        else:
-            print(f"⚠️ 不正なフォーマット: {entry}")
-    return lobby_ids
+    parts = friend_lobby.split(" : ")
+    if len(parts) == 2:
+        lobby_ids.append(parts[1])
+    else:
+        print(f"⚠️ 不正なフォーマット: {parts}")
+        return None
+    return lobby_ids[0]

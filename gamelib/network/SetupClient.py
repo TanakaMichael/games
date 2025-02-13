@@ -15,13 +15,12 @@ class SetupClient:
         self.network_manager.set_network_ids(lobby_id, server_steam_id, local_steam_id, False, True)
         self.network_manager.running = True
         self.network_manager.connected = False
-        self.network_manager.running.set()  # スレッド開始のフラグをTrueに
+        self.network_manager.thread_running.set()  # スレッド開始のフラグをTrueに
 
         # スレッド開始
         self.network_manager.start_thread(self._ping_handshake)
         self.network_manager.start_thread(self.network_manager._receive_messages)
 
-        self.network_manager.global_event_manager.trigger_event("SetupClient")
 
     def _ping_handshake(self, timeout=5):
         """
@@ -59,6 +58,7 @@ class SetupClient:
             if self.network_manager.complete_scene_sync:
                 self.network_manager.connected = True
                 print("🎉 シーン同期完了！接続確立。")
+                self.network_manager.global_event_manager.trigger_event("SetupClient")
                 return
         
         # タイムアウト処理

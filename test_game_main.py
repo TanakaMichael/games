@@ -28,6 +28,7 @@ class TestGame:
         self.scene_manager.add_scene(LobbyScene(self.screen)) # serverを立てた後のlobbyscene(Game|Roleとか変えれる)
         self.scene_manager.set_active_scene("MenuScene")
     def run(self):
+        
         """メインループ"""
         while self.running:
             delta_time = self.clock.tick(1000) / 1000.0

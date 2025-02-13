@@ -16,7 +16,7 @@ class Communication:
             # 断片化が必要な場合
             self._send_large_message(target_id, message_bytes)
         else:
-            self.network_manager.steam.send_message(target_id, message_bytes)
+            self.network_manager.steam.send_p2p_message(target_id, message_bytes)
 
     def _send_large_message(self, target_id, message_bytes):
         total_fragments = math.ceil(len(message_bytes) / FRAGMENT_SIZE)
@@ -32,7 +32,7 @@ class Communication:
                 "total_fragments": total_fragments,
                 "data": message_bytes[start:end].decode('utf-8', errors='ignore')
             }
-            self.network_manager.steam.send_message(target_id, json.dumps(fragment).encode('utf-8'))
+            self.network_manager.steam.send_p2p_message(target_id, json.dumps(fragment).encode('utf-8'))
 
     def receive_message(self, raw_bytes):
         try:
