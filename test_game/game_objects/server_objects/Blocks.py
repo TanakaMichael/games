@@ -32,7 +32,7 @@ class Blocks(NetworkGameObject):
         self.position.y += 1
     def update(self, dt):
         for block in self.blocks:
-            position = pygame.Vector2(self.position.x + self.block.position.x, self.position.y + self.block.position.y)
+            position = pygame.Vector2(self.position.x +block.position.x, self.position.y + block.position.y)
             block.set_transform_position(self.size ,position)
         if self.network_manager.is_server:
             if self._size != self.size:
