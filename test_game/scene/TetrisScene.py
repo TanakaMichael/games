@@ -3,6 +3,7 @@ from gamelib.game.utility.Coroutine import WaitForSeconds
 from ..game_objects.server_objects.Field import Field
 from ..game_objects.server_objects.ui.TetrisPanel import TetrisPanel
 from gamelib.game.game_object.utility_object.FrameRate import FrameRate
+from gamelib.game.core.Camera import Camera
 import pygame
 import time
 class TetrisScene(NetworkScene):
@@ -11,6 +12,8 @@ class TetrisScene(NetworkScene):
         self.start_count = 5
     def start(self):
         self.menu = self.add_object(TetrisPanel())
+
+        self.camera = self.add_camera(Camera(self.cavnas, 100))
         self.field1 = self.add_object(Field(number=0))
         self.field2 = self.add_object(Field(number=1))
 
