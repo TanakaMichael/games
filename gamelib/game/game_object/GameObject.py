@@ -22,6 +22,8 @@ class GameObject:
         self.parent = parent
     def start(self):
         pass
+    def end(self):
+        pass
     def add_child(self, child_object):
         """子オブジェクトを追加"""
         if isinstance(child_object, GameObject):

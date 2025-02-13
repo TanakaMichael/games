@@ -13,6 +13,8 @@ class NetworkGameObject(GameObject):
             self.network_id = network_id
         
         self.steam_id = steam_id
+        # receive_messageが非同期のため、
+        self.initialized = False
         name = name + f"_{self.network_id}"
         super().__init__(name, active, parent)
 
@@ -21,6 +23,12 @@ class NetworkGameObject(GameObject):
         # **状態の変更をトラッキングするための変数**
         self._previous_active = self.active
         self._previous_steam_id = self.steam_id
+    def end(self):
+        super().end()
+        self.initialized = False
+    def start(self):
+        super().end()
+        self.initialized = True
 
     def get_network_components(self):
         return [component for component in self.components if isinstance(component, NetworkComponent)]

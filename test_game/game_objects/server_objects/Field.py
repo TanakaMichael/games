@@ -39,7 +39,9 @@ class Field(NetworkGameObject):
             
 
     def start(self):
-        self.add_component()
+        # initialize処理
+        super().start()
+
     def generate_block(self):
         """server側でブロックの生成patternを作成する"""
         index = self.generate_time * self.scene.seed % len(self.minos)
@@ -50,7 +52,7 @@ class Field(NetworkGameObject):
 
     def update(self, dt):
         super().update(dt)
-        if self.steam_id == self.network_manager.local_steam_id:
+        if self.initialized and self.steam_id == self.network_manager.local_steam_id:
             if self.move_left_action.get_on_press():
                 self.network_manager.send_to_server({"type": "move","x": -1, "sender_id": self.network_manager.local_steam_id})
             if self.move_right_action.get_on_press():
