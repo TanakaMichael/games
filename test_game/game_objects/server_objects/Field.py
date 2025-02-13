@@ -61,7 +61,7 @@ class Field(NetworkGameObject):
                 self.network_manager.send_to_server({"type": "rotation", "sender_id": self.network_manager.local_steam_id})
 
     def on_fall_active_mino(self):
-        WaitForSeconds(self.fall_speed)
+        yield WaitForSeconds(self.fall_speed)
         if self.check_put():
             self.fix_active_mino()
         else:
