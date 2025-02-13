@@ -21,7 +21,7 @@ class TetrisScene(NetworkScene):
 
         if self.network_manager.is_server:
             # ゲームの開始を遅れさせる
-            
+            self.generate_block_pattern()
             self.coroutine_manager.start_coroutine(self.start_game_delay)
         super().start()
 
