@@ -38,7 +38,7 @@ class Sprite(Component):
     def apply_base_size(self, base_size):
         """基準サイズを適用する"""
         self.base_size = pygame.Vector2(base_size)
-        self.original_image = pygame.transform.scale(self.original_image, (int(self.base_size.x), int(self.base_size.y)))
+        self.original_image = pygame.transform.smoothscale(self.original_image, (int(self.base_size.x), int(self.base_size.y)))
 
     def update_transform(self, force=False):
         """Transform 情報に基づき、スケーリング・回転変換を更新（キャッシュ利用）"""

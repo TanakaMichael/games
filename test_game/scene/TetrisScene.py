@@ -31,7 +31,7 @@ class TetrisScene(NetworkScene):
 
         print("🚀 ゲームスタート！")
     def update(self, dt):
-        super().update()
+        super().update(dt)
     def generate_block_pattern(self):
         """server側でブロックの生成patternを作成する"""
         self.seed = int(time.time())
