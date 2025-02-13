@@ -30,6 +30,7 @@ class GameObject:
             self.children.append(child_object)
             child_object.parent = self
             child_object.transform.set_parent(self.transform)
+            return child_object
         else:
             raise ValueError("子オブジェクトは GameObject である必要があります")
     def add_component(self, component_class, *args, **kwargs) -> Component:
