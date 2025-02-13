@@ -3,7 +3,7 @@ from .Transform import Transform
 import pygame
 class Sprite(Component):
     image_cache = {}
-    def __init__(self, game_object, image_path, base_size=None):
+    def __init__(self, game_object, image_path=None, base_size=None):
         super().__init__(game_object)
         self.image_path = None
         self.base_size = pygame.Vector2(base_size) if base_size else None
@@ -18,8 +18,8 @@ class Sprite(Component):
 
         self._final_width = None
         self._final_height = None
-
-        self.load_image(image_path)
+        if image_path:
+            self.load_image(image_path)
 
     def load_image(self, path):
         """画像のロードとキャッシュ"""

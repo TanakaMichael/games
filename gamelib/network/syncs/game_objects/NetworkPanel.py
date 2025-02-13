@@ -2,10 +2,10 @@ from ....game.game_object.Panel import Panel
 from .NetworkGameObject import NetworkGameObject
 
 class NetworkPanel(NetworkGameObject):
-    def __init__(self,canvas, name, active=True, parent=None):
+    def __init__(self, name, active=True, parent=None, network_id=None, steam_id=None):
         self.ui_objects = []
-        super().__init__(name, active, parent)
-        self.canvas = canvas
+        super().__init__(name, active, parent, network_id, steam_id)
+
 
     def set_active(self, active):
         super().set_active(active)

@@ -1,9 +1,10 @@
 from ..ui.Canvas import Canvas
-
+from ..utility.Coroutine import CoroutineManager
 class Scene:
     def __init__(self, name, screen):
         self.name = name
         self.screen = screen
+        self.coroutine_manager = CoroutineManager()
 
         self.canvas = Canvas(screen)
         self.objects = []
@@ -29,6 +30,7 @@ class Scene:
     def update(self, dt):
         if not self.active:
             return
+        self.coroutine_manager.update(dt)
         for obj in self.objects:
             obj.update(dt)
         for camera in self.cameras:

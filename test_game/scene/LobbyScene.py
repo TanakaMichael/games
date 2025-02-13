@@ -5,5 +5,5 @@ class LobbyScene(NetworkScene):
     def __init__(self, screen):
         super().__init__("LobbyScene", screen)
     def start(self):
-        self.game_ui = self.add_object(LobbyPanel(self.canvas))
+        self.game_ui = self.add_object(LobbyPanel())
         super().start()
