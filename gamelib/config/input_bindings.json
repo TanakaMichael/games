@@ -3,6 +3,7 @@
     "MoveDown": "s",
     "MoveLeft": "a",
     "MoveRight": "d",
+    "Rotate": "r",
     "MouseLeft": "BUTTON_LEFT",
     "MouseRight": "BUTTON_RIGHT",
     "ScrollUp": "SCROLL_UP",

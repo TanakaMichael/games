@@ -19,6 +19,7 @@ class Field(NetworkGameObject):
         # 操作のためのactionを取得する
         self.move_right_action = self.input_manager.get_action("MoveRight")
         self.move_left_action = self.input_manager.get_action("MoveLeft")
+        self.move_rotate_action = self.input_manager.get_action("Rotate")
         self.canvas = self.network_manager.scene_manager.current_scene.canvas
         members = self.network_manager.steam.get_all_lobby_members(self.network_manager.lobby_id)
         self.is_local_player = False
