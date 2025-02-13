@@ -10,6 +10,8 @@ class PingMeter:
         self.ema_alpha = ema_alpha
         self.last_ping_time = time.perf_counter()
         self.ping_rate = 0.0
+        self.interval = 1
+        self.last_send_time = time.time()
 
     def process_ping_response(self, ping_response):
         """
@@ -27,14 +29,33 @@ class PingMeter:
                 self.ping_rate = self.ema_alpha * estimated_ping + (1 - self.ema_alpha) * self.ping_rate
             print(f"DEBUG: RTT = {rtt:.3f}s, estimated ping = {estimated_ping:.3f}s, smoothed ping_rate = {self.ping_rate:.3f}s")
             self.last_ping_time = current_time
+    def send_ping(self, message):
+        data = {
+            "type": "ping_response", 
+            "time": message.get("time"),
+        }
+        self.network_manager.send_to_client(int(message.get("sender_id")), data)
+    def receive_message(self, message):
+        t = message.get("type")
+        if t == "ping_request":
+            self.send_ping(message)
+        elif t == "ping_response":
+            self.process_ping_response(message)
+    
+    
+
+
 
     def send_ping_request(self):
         """
         クライアント側がサーバーに PING_REQUEST を送信するためのデータを作成して送信する。
         """
-        ping_request = {
-            "type": "PING_REQUEST",
-            "time": time.perf_counter(),
-            "sender_id": self.network_manager.local_steam_id
-        }
-        self.network_manager.send_to_server(ping_request)
+        while True:
+            if self.last_ping_time + self.interval < time.time():
+                ping_request = {
+                   "type": "ping_request",
+                   "time": time.perf_counter(),
+                   "sender_id": self.network_manager.local_steam_id
+                }
+                self.last_ping_time = time.time()
+                self.network_manager.send_to_server(ping_request)

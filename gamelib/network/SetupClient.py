@@ -20,9 +20,10 @@ class SetupClient:
         # スレッド開始
         self.network_manager.start_thread(self._ping_handshake)
         self.network_manager.start_thread(self.network_manager._receive_messages)
+        self.network_manager.start_thread(self.network_manager.ping_meter.send_ping_request())
 
 
-    def _ping_handshake(self, timeout=5):
+    def _ping_handshake(self, timeout=20):
         """
         Ping応答を待機し、タイムアウトした場合は強制切断
         """

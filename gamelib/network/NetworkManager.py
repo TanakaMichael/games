@@ -103,7 +103,7 @@ class NetworkManager(Global):
 
     def stop_all_threads(self):
         print("🛑 すべてのスレッドを停止します...")
-        self.running.clear()
+        self.thread_running.clear()
 
         current_thread = threading.current_thread()  # 🔹 現在実行中のスレッドを取得
 
