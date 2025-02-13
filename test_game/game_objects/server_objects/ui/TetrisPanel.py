@@ -18,7 +18,6 @@ class TetrisPanel(NetworkPanel):
     def start(self):
         self.join_user = self.add_ui(MeshText(self.canvas, "JoinUsers", "KH-Dot-Dougenzaka-12.ttf", "", 40, alignment="right", position=(10, 30)))
         self.state = self.add_ui(MeshText(self.canvas, "State", "KH-Dot-Dougenzaka-12.ttf", "", 100, alignment="center", position=("center", "center-300")))
-        self.start_btn.on_click = self.on_start
         super().start()
     def update(self, dt):
         super().update(dt)
@@ -28,7 +27,7 @@ class TetrisPanel(NetworkPanel):
             for user in members:
                 steam_name = self.network_manager.steam.get_steam_name(user)
                 text += f"{steam_name}  "
-            
+
             self.join_user.set_text(text)
             if self.move_left_action.get_on_press():
                 print("move it!")
