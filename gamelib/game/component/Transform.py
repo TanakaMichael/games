@@ -27,7 +27,9 @@ class Transform(Component):
             self.global_scale = pygame.Vector2(self.parent.global_scale.x * self.local_scale.x, self.parent.global_scale.y * self.local_scale.y)
             self.global_rotation = self.parent.global_rotation + self.local_rotation
             rotated_local_position = self._rotate_vector(self.local_position, self.parent.global_rotation)
-            self.global_position = self.parent.global_position + rotated_local_position
+            self.global_position.x = self.parent.global_position.x + rotated_local_position.x
+            self.global_position.y = self.parent.global_position.y + rotated_local_position.y
+            self.global_position.z = self.parent.global_position.z
         else:
             self.global_position = self.local_position
             self.global_scale = self.local_scale
