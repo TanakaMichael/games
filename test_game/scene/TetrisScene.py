@@ -20,6 +20,7 @@ class TetrisScene(NetworkScene):
             # ゲームの開始を遅れさせる
             
             self.coroutine_manager.start_coroutine(self.start_game_delay)
+        super().start()
 
     def start_game_delay(self):
         """ゲーム開始を5秒遅らせて全クライアントに通知"""
