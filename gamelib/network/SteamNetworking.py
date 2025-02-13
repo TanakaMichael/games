@@ -213,7 +213,9 @@ class SteamNetworking:
         return self._accept_p2p_session(steam_id)
 
     def send_p2p_message(self, steam_id, message):
-        return self._send_p2p_message(steam_id, message.encode('utf-8'))
+        if isinstance(message, str):
+            message = message.encode('utf-8')  # 文字列の場合はエンコード
+        return self._send_p2p_message(steam_id, message)
 
     def receive_p2p_message(self, buffer_size=1024):
         buffer = ctypes.create_string_buffer(buffer_size)

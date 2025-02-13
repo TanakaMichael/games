@@ -103,11 +103,16 @@ class NetworkManager(Global):
 
     def stop_all_threads(self):
         print("🛑 すべてのスレッドを停止します...")
-        self.thread_running.clear()  # フラグをFalseにして停止
+        self.running.clear()
+
+        current_thread = threading.current_thread()  # 🔹 現在実行中のスレッドを取得
+
         for thread in self.threads:
-            if thread.is_alive():
-                thread.join(timeout=1)  # スレッドが終了するのを待つ
+            if thread.is_alive() and thread is not current_thread:
+                thread.join(timeout=1)  # 🔹 自分自身は join() しない
+
         self.threads.clear()
+
 
     def LeaveLobby(self):
         """
@@ -140,7 +145,8 @@ class NetworkManager(Global):
             # 🔹 参加者リストに追加
             self.lobby_members[steam_id] = player_name
 
-            self.global_event_manager.trigger_event("LobbyJoin", steam_id, player_name, lobby_id)
+            self.global_event_manager.trigger_event("LobbyJoin", steam_id=steam_id, player_name=player_name, lobby_id=lobby_id)
+
 
         # **ロビー退出のチェック**
         left, steam_id, lobby_id = self.steam.check_lobby_leave()
@@ -152,7 +158,7 @@ class NetworkManager(Global):
             if steam_id in self.lobby_members:
                 del self.lobby_members[steam_id]
 
-            self.global_event_manager.trigger_event("LobbyLeave", steam_id, player_name, lobby_id)
+            self.global_event_manager.trigger_event("LobbyLeave", steam_id=steam_id, player_name=player_name, lobby_id=lobby_id)
 
     # 🔹 現在の参加者一覧を取得
     def get_lobby_members(self):
