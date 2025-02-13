@@ -74,9 +74,10 @@ class NetworkManager(Global):
 
     def broadcast(self, message, send_server=False):
         for client_id in self.lobby_members.keys():
-            if send_server or (client_id != self.server_steam_id):
+            if (client_id != self.server_steam_id):
                 self.send_to_client(client_id, message)
-
+        if send_server:
+            self.scene_manager.receive_message(self, message)
     def process_received_message(self, message):
         for component in self.components:
             if hasattr(component, "receive_message"):

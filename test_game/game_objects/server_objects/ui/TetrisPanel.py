@@ -39,7 +39,7 @@ class TetrisPanel(NetworkPanel):
             self.state.set_text("start!")
             self.coroutine_manager.start_coroutine(self.visible_state)
     def visible_state(self):
-        self.state_animation = self.add_component(MoveAnimation, target_position=("center", "top-100"))
+        self.state_animation = self.state.add_component(MoveAnimation, target_position=("center", "top-100"))
         WaitForSeconds(1)
         self.state_animation.start()
         
