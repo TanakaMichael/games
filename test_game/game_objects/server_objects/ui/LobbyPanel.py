@@ -1,6 +1,7 @@
 from gamelib.network.syncs.game_objects.NetworkPanel import NetworkPanel
 from gamelib.game.ui.ui_objects.MeshText import MeshText
 from gamelib.network.NetworkManager import NetworkManager
+from gamelib.network.NetworkObjectFactory import NetworkObjectFactory
 
 class LobbyPanel(NetworkPanel):
     def __init__(self, canvas, name="LobbyPanel", active=True, parent=None):
@@ -21,3 +22,5 @@ class LobbyPanel(NetworkPanel):
 
         if len(members) <= 1:
             self.state.set_text("参加者を待っています...")
+
+NetworkObjectFactory.register_class(LobbyPanel)

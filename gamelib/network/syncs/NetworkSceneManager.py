@@ -23,7 +23,8 @@ class NetworkSceneManager(SceneManager):
         self.set_active_scene(scene_data["scene_name"])
         # ネットワーク関連のオブジェクトは削除する
         self.current_scene.clear_network_objects()
-        for obj_data in scene_data["objects"]:
+        objects = scene_data["scene_data"]
+        for obj_data in objects:
             new_obj = NetworkObjectFactory.create_object(
                 obj_data["class_name"], 
                 obj_data["object_name"],
