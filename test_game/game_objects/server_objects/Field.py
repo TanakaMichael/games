@@ -173,7 +173,7 @@ class Field(NetworkGameObject):
         elif message.get("type") == "game_over":
             # self.on_game_over(message)
             self.coroutine_manager.clear()
-            print(f"敗北者 : {message["sender_id"]}" )
+            print(f"敗北者 : {message['sender_id']}" )
     def move_right(self):
         if self.active_mino:
             for block in self.active_mino.blocks:

@@ -32,7 +32,7 @@ class TetrisPanel(NetworkPanel):
     def receive_message(self, message):
         super().receive_message(message)
         if message.get("type") == "count_game":
-            self.state.set_text(f"{message["count"]}")
+            self.state.set_text(f"{message['count']}")
         elif message.get("type") == "start_game":
             self.state.set_text("start!")
             self.coroutine_manager.start_coroutine(self.visible_state)
