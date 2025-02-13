@@ -151,8 +151,8 @@ class Field(NetworkGameObject):
     def check_put(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
-                x = self.active_mino.position.x + block.x
-                y = self.active_mino.position.y + block.y
+                x = self.active_mino.position.x + block.position.x
+                y = self.active_mino.position.y + block.position.y
                 # 設置可能
                 if y+1 >= self.height or self.grid[y+1][x] is not None:
                     return True
@@ -179,24 +179,24 @@ class Field(NetworkGameObject):
     def move_right(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
-                x = self.active_mino.position.x + block.x
-                y = self.active_mino.position.y + block.y
+                x = self.active_mino.position.x + block.position.x
+                y = self.active_mino.position.y + block.position.y
                 if x+1 >= self.wdith or self.grid[y][x+1] is not None:
                     return False
             self.active_mino.move_right()
     def move_left(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
-                x = self.active_mino.position.x + block.x
-                y = self.active_mino.position.y + block.y
+                x = self.active_mino.position.x + block.position.x
+                y = self.active_mino.position.y + block.position.y
                 if x-1 <= 0 or self.grid[y][x-1] is not None:
                     return False
             self.active_mino.move_left()
     def rotation(self):
         if self.active_mino:
             for block in self.active_mino.blocks:
-                x = -block.y
-                y = block.x
+                x = -block.position.y
+                y = block.position.x
                 if (x < 0 or x >= self.width) or (y < 0 or y >= self.height) :
                     if self.grid[y][x] is not None:
                         return False
