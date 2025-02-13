@@ -76,5 +76,6 @@ class NetworkSceneManager(SceneManager):
         elif t == "request_scene_sync":
             self.send_network_scene_sync(network_manager, message["sender_id"])
         #sceneからは、循環が発生しないのでnetwork_managerを送信する
-        self.current_scene.receive_message(message)
+        if isinstance(self.current_scene, NetworkScene):
+            self.current_scene.receive_message(message)
         

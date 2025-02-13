@@ -93,7 +93,7 @@ class NetworkManager(Global):
                 message = self.communication.receive_message(raw_data.encode('utf-8'))
                 if message:
                     with self.lock:
-                        self.process_received_message(message, sender_id)
+                        self.process_received_message(message)
 
             time.sleep(0.01)
     def start_thread(self, target):

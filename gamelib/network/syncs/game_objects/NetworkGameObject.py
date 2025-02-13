@@ -12,7 +12,7 @@ class NetworkGameObject(GameObject):
 
         self.add_component(NetworkTransform, )
     def get_network_components(self):
-        [component for component in self.components if isinstance(component, NetworkComponent)]
+        return [component for component in self.components if isinstance(component, NetworkComponent)]
     def receive_message(self, message):
         # コンポーネント更新
         t = message.get("type")
