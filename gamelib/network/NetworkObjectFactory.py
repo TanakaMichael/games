@@ -4,7 +4,7 @@ class NetworkObjectFactory:
     @classmethod
     def register_class(cls):
         """オブジェクトクラスを登録する"""
-        NetworkObjectFactory.registered_classes[cls.__name__] = cls
+        NetworkObjectFactory._registry[cls.__name__] = cls
 
     @classmethod
     def create_object(cls, class_name, object_name, network_id=None, steam_id=None, **kwargs):
