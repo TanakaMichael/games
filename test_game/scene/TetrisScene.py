@@ -13,7 +13,7 @@ class TetrisScene(NetworkScene):
     def start(self):
         self.menu = self.add_object(TetrisPanel())
 
-        self.camera = self.add_camera(Camera(self.cavnas, 100))
+        self.camera = self.add_camera(Camera(self.canvas, 100))
         self.field1 = self.add_object(Field(number=0))
         self.field2 = self.add_object(Field(number=1))
 
