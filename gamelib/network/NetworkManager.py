@@ -160,6 +160,9 @@ class NetworkManager(Global):
 
             self.global_event_manager.trigger_event("LobbyLeave", steam_id=steam_id, player_name=player_name, lobby_id=lobby_id)
 
+        # ping を一定時間送信する
+        if self.is_client:
+            self.ping_meter.send_ping_request()
     # 🔹 現在の参加者一覧を取得
     def get_lobby_members(self):
         return self.lobby_members

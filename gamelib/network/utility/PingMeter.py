@@ -50,12 +50,11 @@ class PingMeter:
         """
         クライアント側がサーバーに PING_REQUEST を送信するためのデータを作成して送信する。
         """
-        while True:
-            if self.last_ping_time + self.interval < time.time():
-                ping_request = {
-                   "type": "ping_request",
-                   "time": time.perf_counter(),
-                   "sender_id": self.network_manager.local_steam_id
-                }
-                self.last_ping_time = time.time()
-                self.network_manager.send_to_server(ping_request)
+        if self.network_manager.running and self.last_send_time + self.interval < time.time():
+            ping_request = {
+               "type": "ping_request",
+               "time": time.perf_counter(),
+               "sender_id": self.network_manager.local_steam_id
+            }
+            self.last_send_time = time.time()
+            self.network_manager.send_to_server(ping_request)
