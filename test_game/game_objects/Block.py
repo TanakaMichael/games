@@ -11,7 +11,7 @@ class Block(NetworkGameObject):
         self.add_component(NetworkSprite)
         self.network_manager = NetworkManager.get_instance()
         self.position = pygame.Vector2(position)
-        self._size = 20
+        self._size = 0
     def set_transform_position(self, size, final_position):
         self.transform.set_local_position(pygame.Vector3(final_position.x * size, final_position.y * size, 0))
         if size != self._size:
