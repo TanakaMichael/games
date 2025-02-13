@@ -2,9 +2,10 @@ class NetworkObjectFactory:
     _registry = {}  # クラスの登録用辞書
 
     @classmethod
-    def register_class(cls):
+    def register_class(cls, target_class):
         """オブジェクトクラスを登録する"""
-        NetworkObjectFactory._registry[cls.__name__] = cls
+        NetworkObjectFactory._registry[target_class.__name__] = target_class
+
 
     @classmethod
     def create_object(cls, class_name, object_name, network_id=None, steam_id=None, **kwargs):
