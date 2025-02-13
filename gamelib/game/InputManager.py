@@ -90,7 +90,7 @@ class InputManager(Global):
             raise Exception("InputManager is a singleton!")
         super().__init__()
 
-        self.config_path = "gamelib/config/input_bindings.txt"
+        self.config_path = "gamelib/config/input_bindings.json"
         self.bindings = self.load_bindings()
         self.actions = {name: Action(name) for name in self.bindings}  # アクション管理
         self.held_keys = set()  # 現在押されているキーのセット
