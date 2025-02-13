@@ -47,7 +47,6 @@ class Field(NetworkGameObject):
         """server側でブロックの生成patternを作成する"""
         index = self.generate_time * self.scene.seed % len(self.minos)
         self.active_mino = self.scene.add_network_object(self.minos[index](parent=self))
-        self.active_mino.set_transform_position()
         self.generate_time += 1
 
 
