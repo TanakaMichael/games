@@ -81,6 +81,8 @@ class Transform(Component):
         return self.global_rotation
     def _rotate_vector(self, vector, angle_deg):
         """ベクトルを指定した角度 (度数法) だけ回転"""
+        if isinstance(angle_deg, pygame.Vector3):
+            angle_deg = angle_deg.z
         angle_rad = math.radians(angle_deg)
         cos_a = math.cos(angle_rad)
         sin_a = math.sin(angle_rad)
