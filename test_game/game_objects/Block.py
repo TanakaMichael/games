@@ -12,6 +12,8 @@ class Block(NetworkGameObject):
         self.network_manager = NetworkManager.get_instance()
         if position is not None:
             self.position = pygame.Vector2(position)
+
+        self._position = pygame.Vector2(position)
         self.is_wall = is_wall
         # 壁ではない => プレイヤーか、背景
         if not is_wall:
@@ -22,6 +24,21 @@ class Block(NetworkGameObject):
         if size != self._size:
             self._size = size
             self.sprite.apply_base_size((size, size))
+    def update(self, dt):
+        if self._position.x != self.position.x:
+            self._position.x = self.position.x
+            self.network_manager.broadcast({"type": "block_position_x", "network_id": self.network_id, "value": self.position.x})
+        if self._position.y != self.position.y:
+            self._position.y = self.position.y
+            self.network_manager.broadcast({"type": "block_position_y", "network_id": self.network_id, "value": self.position.y})
+    def receive_message(self, message):
+        super().receive_message(message)
+
+        if message.get("type") == "block_position_x" and message.get("network_id") == self.network_id:
+            self.position.x =  message.get("value")
+        if message.get("type") == "block_position_y" and message.get("network_id") == self.network_id:
+            self.position.y =  message.get("value")
+
 
     
 

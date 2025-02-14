@@ -62,7 +62,7 @@ class NetworkSprite(NetworkComponent):
 
         self.game_object.network_manager.broadcast(force_sync_data)
 
-    def receive_network_data(self, message):
+    def receive_message(self, message):
         """
         クライアント側で同期データを受信したときに呼び出される
         """
