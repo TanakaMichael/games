@@ -2,7 +2,9 @@ import ctypes
 import os
 import time
 import threading
-
+import json
+import zlib
+import base64
 class SteamNetworking:
     def __init__(self, dll_path="SteamNetworkingWrapper.dll"):
         self.dll_path = os.path.abspath(dll_path)
@@ -217,24 +219,39 @@ class SteamNetworking:
             message = message.encode('utf-8')  # 文字列の場合はエンコード
         return self._send_p2p_message(steam_id, message)
 
+    # 断片サイズなどの定数は別途定義されているものとする
+
     def receive_p2p_message(self, buffer_size=1024):
         buffer = ctypes.create_string_buffer(buffer_size)  # 受信用バッファ
         sender_id = ctypes.c_uint64(0)  # 送信者ID格納用
-    
+
         success = self._receive_p2p_message(buffer, buffer_size, ctypes.byref(sender_id))
-    
         if success:
-            if buffer.value and buffer.value != b'\x00' * buffer_size:  # データが空でないかチェック
+            # 受信したデータが空でないかチェック
+            if buffer.value and buffer.value != b'\x00' * buffer_size:
                 try:
-                    decoded_message = buffer.value.decode('utf-8', errors='replace').strip('\x00')
+                    # まず、受信したバイト列をUTF-8で文字列に変換
+                    encoded_str = buffer.value.decode('utf-8', errors='replace').strip('\x00')
                 except Exception as e:
                     print(f"⚠️ Decode error: {e}")
                     return None, sender_id.value
-                print(f"📩 Received from {sender_id.value}: {decoded_message}")
-                return decoded_message, sender_id.value
+
+                # ここで、送信時に圧縮とbase64エンコードしているため、復元する
+                try:
+                    # base64デコードして圧縮済みデータを取り出す
+                    compressed_data = base64.b64decode(encoded_str)
+                    # zlibで解凍して元のJSON文字列に戻す
+                    json_str = zlib.decompress(compressed_data).decode('utf-8')
+                    # JSON文字列をオブジェクトにパースする
+                    message = json.loads(json_str)
+                except Exception as e:
+                    print(f"⚠️ Decompression/JSON decode error: {e}")
+                    return None, sender_id.value
+
+                print(f"📩 Received from {sender_id.value}: {message}")
+                return message, sender_id.value
             else:
                 print(f"⚠️ Received empty message from {sender_id.value}")
-    
         return None, None
 
 
