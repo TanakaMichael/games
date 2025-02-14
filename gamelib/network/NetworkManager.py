@@ -184,6 +184,7 @@ class NetworkManager(Global):
 
         # コルーチンを更新  ping を一定時間送信する
         self.coroutine_manager.update(dt)
+        self.client_setup.update(dt)
         if self.is_client:
             self.ping_meter.send_ping_request()
     # 🔹 現在の参加者一覧を取得

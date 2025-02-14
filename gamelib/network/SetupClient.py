@@ -20,7 +20,6 @@ class SetupClient:
 
             # スレッド開始
             self.coroutine_manager.start_coroutine(self._ping_handshake)
-            self.network_manager.coroutine_manager.start_coroutine(self.network_manager._receive_messages)
 
             #self.network_manager.start_thread(self._ping_handshake)
             #self.network_manager.start_thread(self.network_manager._receive_messages)
@@ -34,7 +33,7 @@ class SetupClient:
         """
         start_time = time.time()
         initial_ping_rate = self.network_manager.ping_meter.ping_rate
-
+        self.network_manager.coroutine_manager.start_coroutine(self.network_manager._receive_messages)
         print("📡 サーバーへの Ping を開始します...")
 
         while time.time() - start_time < timeout:
