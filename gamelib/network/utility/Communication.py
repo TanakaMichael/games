@@ -46,8 +46,8 @@ class Communication:
 
             fragment_bytes = json.dumps(fragment).encode('utf-8')
             self.network_manager.steam.send_p2p_message(target_id, fragment_bytes)
-
     def receive_message(self, raw_bytes):
+        """受信データを解析する"""
         try:
             decoded_str = raw_bytes.decode('utf-8', errors='replace').strip('\x00')
             message = json.loads(decoded_str)
@@ -58,36 +58,23 @@ class Communication:
         if message.get("type") == "fragment":
             return self._handle_incoming_fragment(message)
         else:
-            # 断片化していない場合は、送信側でbase64エンコードされた文字列であるはず
-            try:
-                # クリーンアップ: base64文字列はASCIIのみのはずなので、非ASCII文字を除去
-                clean_message = re.sub(r'[^A-Za-z0-9+/=]', '', message)
-                compressed = base64.b64decode(clean_message)
-                json_str = zlib.decompress(compressed).decode('utf-8')
-                return json.loads(json_str)
-            except Exception as e:
-                print(f"⚠️ Error decoding message: {e}")
-                return message
+            return self._decode_message(message)
 
-    def _handle_incoming_fragment(self, fragment):
-        fragment_id = fragment["fragment_id"]
-        index = fragment["fragment_index"]
-        total_fragments = fragment["total_fragments"]
+    def _decode_message(self, message):
+        """Base64デコードと圧縮解除"""
+        try:
+            # 受信データに余計な非ASCII文字が混ざっていないかクリーニング
+            clean_message = re.sub(r'[^A-Za-z0-9+/=]', '', message)
 
-        if fragment_id not in self.fragment_buffer:
-            self.fragment_buffer[fragment_id] = [None] * total_fragments
+            # Base64パディングを補正（=の個数を調整）
+            padding = 4 - (len(clean_message) % 4)
+            if padding and padding != 4:
+                clean_message += "=" * padding
 
-        self.fragment_buffer[fragment_id][index] = fragment["data"]
+            compressed = base64.b64decode(clean_message)
+            json_str = zlib.decompress(compressed).decode('utf-8')
 
-        if all(part is not None for part in self.fragment_buffer[fragment_id]):
-            complete_data = ''.join(self.fragment_buffer[fragment_id])
-            del self.fragment_buffer[fragment_id]
-            try:
-                clean_data = re.sub(r'[^A-Za-z0-9+/=]', '', complete_data)
-                compressed = base64.b64decode(clean_data)
-                json_str = zlib.decompress(compressed).decode('utf-8')
-                return json.loads(json_str)
-            except Exception as e:
-                print(f"⚠️ Error in fragment decoding: {e}")
-                return None
-        return None
+            return json.loads(json_str)
+        except Exception as e:
+            print(f"⚠️ Error decoding message: {e}")
+            return message
