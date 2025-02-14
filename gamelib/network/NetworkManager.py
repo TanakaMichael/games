@@ -91,7 +91,7 @@ class NetworkManager(Global):
     def _receive_messages(self):
         while self.running:
             raw_data, sender_id = self.steam.receive_p2p_message()
-    
+
             if raw_data:
                 # もし raw_data が bytes なら処理、dict ならそのまま使う
                 if isinstance(raw_data, bytes):
@@ -105,12 +105,12 @@ class NetworkManager(Global):
                     except Exception as e:
                         print("⚠️ Error processing raw_data:", e)
                         message = None
-    
+
                 if message:
                     with self.lock:
                         self.process_received_message(message)
-    
-            time.sleep(0.01)
+
+            time.sleep(0.005)
 
     def start_thread(self, target):
         thread = threading.Thread(target=target, daemon=True)

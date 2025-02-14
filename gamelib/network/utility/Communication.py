@@ -6,7 +6,7 @@ import base64
 import re
 import math
 
-FRAGMENT_SIZE = 950  # 断片サイズなどは適宜定義されているものとする
+FRAGMENT_SIZE = 850  # 断片サイズなどは適宜定義されているものとする
 
 class Communication:
     def __init__(self, network_manager):
