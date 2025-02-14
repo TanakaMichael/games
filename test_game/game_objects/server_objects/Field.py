@@ -54,16 +54,16 @@ class Field(NetworkGameObject):
             self.active_mino = None
             self.back_mino_image = "BackMino1.png"
             self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
-            # 背景ブロック
-            for y in range(self.height):
-                for x in range(self.width):
-                    back = self.add_network_child(Block(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
-                    back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
 
             # 生成回数
             self.generate_time = 1
             self.minos = [TMino]
             self.fall_speed = 0.5
+        # 背景ブロック
+            for y in range(self.height):
+                for x in range(self.width):
+                    back = self.add_child(Block(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
+                    back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
 
     def generate_block(self):
         """server側でブロックの生成patternを作成する"""
