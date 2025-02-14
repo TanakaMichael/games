@@ -13,20 +13,22 @@ class NetworkGameObject(GameObject):
             self.network_id = network_id
         
         self.steam_id = steam_id
-        # receive_messageが非同期のため、
-        self.initialized = False
+        self.initialized = False  # receive_messageが非同期のため
         super().__init__(name, active, parent)
 
         self.add_component(NetworkTransform)
 
-        # **状態の変更をトラッキングするための変数**
+        # **状態の変更をトラッキング**
         self._previous_active = self.active
         self._previous_steam_id = self.steam_id
+        self._previous_layer = self.layer  # **layer の変更を監視**
+
     def end(self):
         super().end()
         self.initialized = False
+
     def start(self):
-        super().end()
+        super().start()
         self.initialized = True
 
     def get_network_components(self):
@@ -42,6 +44,13 @@ class NetworkGameObject(GameObject):
         for child in self.children:
             if hasattr(child, "receive_message"):
                 child.receive_message(message)
+
+        # **オブジェクトの状態を同期**
+        if t == "sync_network_object" and message.get("network_id") == self.network_id:
+            self.active = message.get("active", self.active)
+            self.steam_id = message.get("steam_id", self.steam_id)
+            self.layer = message.get("layer", self.layer)  # **layer を同期**
+            self.parent = self.network_manager.get_object_by_id(message.get("parent_id"))
 
         # **強制同期メッセージを受信**
         if t == "force_sync_network_game_objects_components":
@@ -61,10 +70,12 @@ class NetworkGameObject(GameObject):
             "network_id": self.network_id,
             "active": self.active,
             "steam_id": self.steam_id,
+            "layer": self.layer,  # **layer を同期**
             "parent_id": parent_id
         }
         if self.network_manager.is_server:
             self.network_manager.broadcast(sync_data)
+
     def add_network_child(self, child):
         """このオブジェクトに子オブジェクトを追加し、ネットワークに通知"""
         self.add_child(child)
@@ -75,16 +86,17 @@ class NetworkGameObject(GameObject):
             "child_id": child.network_id,
             "child_class": child.__class__.__name__,
             "child_name": child.name,
-            "steam_id": child.steam_id
+            "steam_id": child.steam_id,
+            "layer": child.layer  # **子オブジェクトの layer も同期**
         }
         if self.network_manager.is_server:
             self.network_manager.broadcast(data)
         return child
+
     def remove_network_child(self, child):
         """子オブジェクトを削除し、クライアントに通知"""
         if child in self.children:
             self.children.remove(child)
-
 
             self.sync_state()  # **親子関係が変わるため同期**
             data = {
@@ -99,7 +111,12 @@ class NetworkGameObject(GameObject):
         super().update(dt)
 
         # **状態の変化を検知**
-        if self.active != self._previous_active or self.steam_id != self._previous_steam_id:
+        if (
+            self.active != self._previous_active or 
+            self.steam_id != self._previous_steam_id or 
+            self.layer != self._previous_layer  # **layer の変更をチェック**
+        ):
             self.sync_state()  # **変更があったら同期**
             self._previous_active = self.active
             self._previous_steam_id = self.steam_id
+            self._previous_layer = self.layer  # **layer の変更を記録**

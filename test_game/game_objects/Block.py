@@ -10,7 +10,8 @@ class Block(NetworkGameObject):
         self.sprite = self.add_component(Sprite, image_path=image_path, base_size=size)
         self.add_component(NetworkSprite)
         self.network_manager = NetworkManager.get_instance()
-        self.position = pygame.Vector2(position)
+        if position is not None:
+            self.position = pygame.Vector2(position)
         self.is_wall = is_wall
         # 壁ではない => プレイヤーか、背景
         if not is_wall:
