@@ -110,7 +110,7 @@ class Field(NetworkGameObject):
                                                                 position=(x, y),
                                                                 image_path=self.active_mino.image_path,
                                                                 is_wall=True
-                                                                ), 0)
+                                                                ), 2)
                 new_blocks.append(new_block)
                 new_block.set_transform_position(self.mino_size, pygame.Vector2(x, y))
                 self.grid[y][x] = new_block
