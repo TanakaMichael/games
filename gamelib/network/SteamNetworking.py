@@ -220,49 +220,40 @@ class SteamNetworking:
             message = message.encode('utf-8')  # 文字列の場合はエンコード
         return self._send_p2p_message(steam_id, message)
 
-    # 断片サイズなどの定数は別途定義されているものとする
     def receive_p2p_message(self, buffer_size=1024):
-        """P2Pメッセージを受信し、Base64デコードで復元"""
+        """P2Pメッセージを受信し、分割データを復元"""
         buffer = ctypes.create_string_buffer(buffer_size)  # 受信用バッファ
         sender_id = ctypes.c_uint64(0)  # 送信者ID格納用
 
         success = self._receive_p2p_message(buffer, buffer_size, ctypes.byref(sender_id))
         if success:
-            # 受信したデータが空でないかチェック
+            # 受信データが空でないかチェック
             if buffer.value and buffer.value != b'\x00' * buffer_size:
                 try:
                     # UTF-8 でデコード
-                    encoded_str = buffer.value.decode('utf-8', errors='replace').strip('\x00')
+                    decoded_str = buffer.value.decode('utf-8', errors='replace').strip('\x00')
+
+                    # JSONを解析
+                    message = json.loads(decoded_str)
 
                     # 受信データのデバッグログ
-                    print(f"📩 Raw Buffer Value: {encoded_str}")
-
-                    # Base64デコード前に不要な文字を除去 (改行など)
-                    clean_encoded_str = re.sub(r'[^A-Za-z0-9+/=]', '', encoded_str)
-
-                    # Base64パディング補正
-                    padding = 4 - (len(clean_encoded_str) % 4)
-                    if padding and padding != 4:
-                        clean_encoded_str += "=" * padding
-
-                    # Base64デコード
-                    json_str = base64.b64decode(clean_encoded_str).decode('utf-8')
-
-                    # JSONパース
-                    message = json.loads(json_str)
-
-                    # 成功時のログ
                     print(f"📩 Received from {sender_id.value}: {message}")
 
-                    return message, sender_id.value
+                    if message.get("type") == "fragment":
+                        return self._handle_incoming_fragment(message), sender_id.value
+                    elif message.get("type") == "full_message":
+                        return json.loads(message["data"]), sender_id.value
+                    else:
+                        return None, sender_id.value
 
                 except Exception as e:
-                    print(f"⚠️ Base64 Decode/JSON parse error: {e}")
-                    print(f"⚠️ Encoded String: {encoded_str}")
+                    print(f"⚠️ JSON Decode error: {e}")
+                    print(f"⚠️ Raw Buffer Value: {buffer.value}")
                     return None, sender_id.value
             else:
                 print(f"⚠️ Received empty message from {sender_id.value}")
         return None, None
+
 
 
 
