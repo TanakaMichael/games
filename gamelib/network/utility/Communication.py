@@ -2,7 +2,7 @@ import json
 import math
 import time
 
-FRAGMENT_SIZE = 850  # 断片サイズ
+FRAGMENT_SIZE = 750  # 断片サイズ
 
 class Communication:
     def __init__(self, network_manager):

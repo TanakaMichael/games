@@ -220,7 +220,7 @@ class SteamNetworking:
             message = message.encode('utf-8')  # 文字列の場合はエンコード
         return self._send_p2p_message(steam_id, message)
 
-    def receive_p2p_message(self, buffer_size=1024):
+    def receive_p2p_message(self, buffer_size=1500):
         """P2Pメッセージを受信し、分割データを復元"""
         buffer = ctypes.create_string_buffer(buffer_size)  # 受信用バッファ
         sender_id = ctypes.c_uint64(0)  # 送信者ID格納用
