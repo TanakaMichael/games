@@ -247,10 +247,11 @@ class SteamNetworking:
                     # JSON文字列をオブジェクトにパースする
                     message = json.loads(json_str)
                 except Exception as e:
+                    print(f"📩 Raw Buffer Value: {buffer.value}")
                     print(f"⚠️ Decompression/JSON decode error: {e}")
                     return None, sender_id.value
 
-                # print(f"📩 Received from {sender_id.value}: {message}")
+                print(f"📩 Received from {sender_id.value}: {message}")
                 return message, sender_id.value
             else:
                 print(f"⚠️ Received empty message from {sender_id.value}")
