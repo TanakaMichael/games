@@ -91,14 +91,27 @@ class NetworkManager(Global):
     def _receive_messages(self):
         while self.running:
             raw_data, sender_id = self.steam.receive_p2p_message()
-
+    
             if raw_data:
-                message = self.communication.receive_message(raw_data.encode('utf-8'))
+                # もし raw_data が bytes なら処理、dict ならそのまま使う
+                if isinstance(raw_data, bytes):
+                    message = self.communication.receive_message(raw_data)
+                elif isinstance(raw_data, dict):
+                    message = raw_data
+                else:
+                    # もし他の型なら、試しに変換（必要に応じて処理を追加）
+                    try:
+                        message = self.communication.receive_message(str(raw_data).encode('utf-8'))
+                    except Exception as e:
+                        print("⚠️ Error processing raw_data:", e)
+                        message = None
+    
                 if message:
                     with self.lock:
                         self.process_received_message(message)
-
+    
             time.sleep(0.01)
+
     def start_thread(self, target):
         thread = threading.Thread(target=target, daemon=True)
         thread.start()
