@@ -8,6 +8,7 @@ from gamelib.network.NetworkObjectFactory import NetworkObjectFactory
 from gamelib.game.utility.Coroutine import WaitForSeconds
 from .TMino import TMino
 from ..Block import Block
+from ..LocalBlock import LocalBlock
 import pygame
 # フィールドを親に、ブロックが設置される
 class Field(NetworkGameObject):
@@ -52,7 +53,6 @@ class Field(NetworkGameObject):
             self.is_alive = True # ゲームの終了条件の一つとして使用するbool
             self.running = False
             self.active_mino = None
-            self.back_mino_image = "BackMino1.png"
             self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
 
             # 生成回数
@@ -60,10 +60,11 @@ class Field(NetworkGameObject):
             self.minos = [TMino]
             self.fall_speed = 0.5
         # 背景ブロック
-            for y in range(self.height):
-                for x in range(self.width):
-                    back = self.add_child(Block(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
-                    back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
+        self.back_mino_image = "BackMino1.png"
+        for y in range(self.height):
+            for x in range(self.width):
+                back = self.add_child(LocalBlock(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
+                back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
 
     def generate_block(self):
         """server側でブロックの生成patternを作成する"""
@@ -194,7 +195,7 @@ class Field(NetworkGameObject):
                 self.running = True
                 self.generate_block()
                 self.coroutine_manager.start_coroutine(self.on_fall_active_mino)
-        if not self.running:
+        if self.network_manager.is_client or not self.running:
             return
         # 個々より先はgameが開始していることが条件の操作
         elif message.get("type") == "move_left_mino" and message["sender_id"] == self.steam_id:

@@ -11,6 +11,7 @@ class NetworkScene(Scene):
     def add_network_object(self, network_object):
         """オブジェクトを追加し、サーバーならクライアントに通知"""
         self.objects.append(network_object)
+        network_object.set_scene(self)
 
         if network_object.network_id is None:
             network_object.network_id = self.network_manager.net_id_generator.generate_id()
@@ -47,30 +48,30 @@ class NetworkScene(Scene):
         """`network_id` からオブジェクトを取得 (子オブジェクトも含めて再帰検索)"""
         if not network_id:
             return None
-    
+
         # **ルートオブジェクトを検索**
         for obj in self.objects:
             if isinstance(obj, NetworkGameObject) and obj.network_id == network_id:
                 return obj
-            
+
             # **子オブジェクトも再帰的に検索**
             found = self._find_network_object_recursive(obj, network_id)
             if found:
                 return found
-    
+
         return None
-    
+
     def _find_network_object_recursive(self, obj, network_id):
         """再帰的に `network_id` を持つオブジェクトを探す"""
         for child in obj.children:
             if isinstance(child, NetworkGameObject) and child.network_id == network_id:
                 return child
-    
+
             # **さらに深い子を探索**
             found = self._find_network_object_recursive(child, network_id)
             if found:
                 return found
-    
+
         return None
 
 
