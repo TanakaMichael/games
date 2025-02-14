@@ -7,7 +7,7 @@ class SetupClient:
         self.coroutine_manager = CoroutineManager()
 
     def run(self, lobby_id):
-        if not self.self.network_manager.running:
+        if not self.network_manager.running:
             if self.network_manager.steam.join_lobby(lobby_id):
                 print("✅ ロビー参加成功")
             server_steam_id = self.network_manager.steam.get_lobby_owner(lobby_id)

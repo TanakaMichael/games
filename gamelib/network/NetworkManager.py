@@ -110,8 +110,7 @@ class NetworkManager(Global):
                         message = None
 
                 if message:
-                    with self.lock:
-                        self.process_received_message(message)
+                    self.process_received_message(message)
 
             yield WaitForSeconds(0.005)
 
