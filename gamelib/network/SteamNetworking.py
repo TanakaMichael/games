@@ -239,7 +239,7 @@ class SteamNetworking:
                     message = json.loads(decoded_str)
 
                     # 受信データのデバッグログ
-                    print(f"📩 Received from {sender_id.value}: {message}")
+                    # print(f"📩 Received from {sender_id.value}: {message}")
 
                     if message.get("type") == "fragment":
                         return self._handle_incoming_fragment(message), sender_id.value

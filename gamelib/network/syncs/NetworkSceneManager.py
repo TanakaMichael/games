@@ -1,5 +1,5 @@
 from ...game.SceneManager import SceneManager
-from ...network.syncs.NetworkScene import NetworkScene
+from ...network.syncs.NetworkScene import NetworkScene, NetworkGameObject
 from ..NetworkObjectFactory import NetworkObjectFactory
 import json
 
@@ -50,13 +50,16 @@ class NetworkSceneManager(SceneManager):
         nm.send_to_server({"type": "force_sync_network_game_objects_components"})
 
     def _apply_parent_relationships(self, object_dict, parent_map):
-        """親子関係を適用"""
+        """親子関係を適用 (NetworkGameObject のみ)"""
         for child_id, parent_id in parent_map.items():
             if parent_id and parent_id in object_dict:
                 parent_obj = object_dict[parent_id]
                 child_obj = object_dict[child_id]
-                parent_obj.add_child(child_obj)
-                child_obj.set_parent(parent_obj)
+
+                if isinstance(parent_obj, NetworkGameObject) and isinstance(child_obj, NetworkGameObject):
+                    parent_obj.add_child(child_obj)
+                    child_obj.set_parent(parent_obj)
+
 
     def send_network_scene_sync(self, network_manager, target_client_id):
         """現在のシーンのデータを送信する (サーバー専用)"""
@@ -79,15 +82,16 @@ class NetworkSceneManager(SceneManager):
             }
         }
         network_manager.send_to_client(target_client_id, scene_data)
-
     def _serialize_object_tree(self, obj):
         """オブジェクトとすべての子オブジェクトを再帰的にシリアライズ"""
         serialized_objects = []
         self._serialize_recursive(obj, serialized_objects, None)
         return serialized_objects
-
     def _serialize_recursive(self, obj, serialized_list, parent_id):
-        """再帰的にオブジェクトをシリアライズ"""
+        """再帰的に `NetworkGameObject` のみをシリアライズ"""
+        if not isinstance(obj, NetworkGameObject):  # **NetworkGameObjectのみ処理**
+            return
+
         serialized_list.append({
             "class_name": obj.__class__.__name__,
             "object_name": obj.name,
@@ -95,8 +99,12 @@ class NetworkSceneManager(SceneManager):
             "steam_id": obj.steam_id,
             "parent_id": parent_id
         })
+
+        # **子供が `NetworkGameObject` の場合のみ再帰処理**
         for child in obj.children:
-            self._serialize_recursive(child, serialized_list, obj.network_id)
+            if isinstance(child, NetworkGameObject):
+                self._serialize_recursive(child, serialized_list, obj.network_id)
+
 
     def request_scene_sync(self, network_manager):
         """シーン同期の要請をClient -> Serverでする"""

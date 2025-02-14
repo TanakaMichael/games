@@ -57,6 +57,8 @@ class NetworkManager(Global):
         # 生成ミスがあった場合Falseを返す
         return self.server_setup.run(dis, max_p)
     def setup_client(self, lobby_id):
+        from gamelib.network.syncs.NetworkSceneManager import NetworkSceneManager
+        self.scene_manager = NetworkSceneManager.get_instance()
         self.client_setup.run(lobby_id)
 
     # ------------------------
