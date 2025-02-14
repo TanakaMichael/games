@@ -15,6 +15,6 @@ class SetupServer:
         self.network_manager.set_network_ids(lobby_id, server_steam_id, local_steam_id, True, False)
         self.network_manager.running = True
 
-        self.network_manager.start_thread(self.network_manager._receive_messages)
+        self.network_manager.coroutine_manager.start_coroutine(self.network_manager._receive_messages)
         self.network_manager.global_event_manager.trigger_event("SetupServer")
         return True

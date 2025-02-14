@@ -7,7 +7,7 @@ from .utility.Communication import Communication
 from .utility.MissingObject import MissingObjectManager
 from .utility.NetIDGenerator import NetIDGenerator
 from .utility.PingMeter import PingMeter
-
+from ..game.utility.Coroutine import CoroutineManager, WaitForSeconds
 from .SetupServer import SetupServer
 from .SetupClient import SetupClient
 class NetworkManager(Global):
@@ -39,6 +39,7 @@ class NetworkManager(Global):
         self.lock = threading.Lock()
         # 各機能クラスの初期化
         self.communication = Communication(self)
+        self.coroutine_manager = CoroutineManager()
         # 各拡張機能(component)を初期化
         self.ping_meter = PingMeter(self)
         self.net_id_generator = NetIDGenerator(self)
@@ -112,7 +113,7 @@ class NetworkManager(Global):
                     with self.lock:
                         self.process_received_message(message)
 
-            time.sleep(0.005)
+            yield WaitForSeconds(0.005)
 
     def start_thread(self, target):
         thread = threading.Thread(target=target, daemon=True)
@@ -144,6 +145,7 @@ class NetworkManager(Global):
         self.stop_all_threads()
         self.steam.leave_lobby(self.lobby_id)
         self.steam.close_all_p2p_sessions()
+        self.coroutine_manager.clear()
 
         self.global_event_manager.trigger_event("SelfLobbyLeave")
 
@@ -181,7 +183,8 @@ class NetworkManager(Global):
 
             self.global_event_manager.trigger_event("LobbyLeave", steam_id=steam_id, player_name=player_name, lobby_id=lobby_id)
 
-        # ping を一定時間送信する
+        # コルーチンを更新  ping を一定時間送信する
+        self.coroutine_manager.update(dt)
         if self.is_client:
             self.ping_meter.send_ping_request()
     # 🔹 現在の参加者一覧を取得
