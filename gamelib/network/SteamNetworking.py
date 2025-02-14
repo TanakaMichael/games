@@ -122,6 +122,8 @@ class SteamNetworking:
             self._shutdown_server = self.steam_dll.ShutdownServer
             self._shutdown_server.restype = None
 
+            self.fragment_buffer = {}  # 断片のバッファ管理
+
         except Exception as e:
             print("❌ DLL の読み込みに失敗しました:", e)
             exit()
