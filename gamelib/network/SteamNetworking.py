@@ -233,6 +233,8 @@ class SteamNetworking:
                     # まず、受信したバイト列をUTF-8で文字列に変換
                     encoded_str = buffer.value.decode('utf-8', errors='replace').strip('\x00')
                 except Exception as e:
+                    print(f"📩 Raw Buffer Value: {buffer.value}")
+
                     print(f"⚠️ Decode error: {e}")
                     return None, sender_id.value
 
@@ -248,7 +250,7 @@ class SteamNetworking:
                     print(f"⚠️ Decompression/JSON decode error: {e}")
                     return None, sender_id.value
 
-                print(f"📩 Received from {sender_id.value}: {message}")
+                # print(f"📩 Received from {sender_id.value}: {message}")
                 return message, sender_id.value
             else:
                 print(f"⚠️ Received empty message from {sender_id.value}")
