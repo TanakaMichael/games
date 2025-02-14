@@ -25,11 +25,12 @@ class GameObject:
         pass
     def end(self):
         pass
-    def add_child(self, child_object):
+    def add_child(self, child_object, layer=0):
         """子オブジェクトを追加し、ソートをトリガー"""
         if isinstance(child_object, GameObject):
             self.children.append(child_object)
             child_object.parent = self
+            child_object.layer = layer
             child_object.transform.set_parent(self.transform)
             self.needs_sorting = True  # **新しく追加したらソートが必要**
             return child_object

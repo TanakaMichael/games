@@ -63,13 +63,13 @@ class Field(NetworkGameObject):
         self.back_mino_image = "BackMino1.png"
         for y in range(self.height):
             for x in range(self.width):
-                back = self.add_child(LocalBlock(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)))
+                back = self.add_child(LocalBlock(parent=self, image_path=self.back_mino_image, is_wall=False, position=(y, x)), -1)
                 back.set_transform_position(self.mino_size, pygame.Vector2(x, y))
 
     def generate_block(self):
         """server側でブロックの生成patternを作成する"""
         index = self.generate_time * self.scene.seed % len(self.minos)
-        self.active_mino = self.add_network_child(self.minos[index](parent=self, size=self.mino_size))
+        self.active_mino = self.add_network_child(self.minos[index](parent=self, size=self.mino_size), 2)
         self.generate_time += 1
 
 
@@ -110,7 +110,7 @@ class Field(NetworkGameObject):
                                                                 position=(x, y),
                                                                 image_path=self.active_mino.image_path,
                                                                 is_wall=True
-                                                                ))
+                                                                ), 0)
                 new_blocks.append(new_block)
                 new_block.set_transform_position(self.mino_size, pygame.Vector2(x, y))
                 self.grid[y][x] = new_block

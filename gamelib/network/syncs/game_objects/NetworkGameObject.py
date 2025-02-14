@@ -88,9 +88,11 @@ class NetworkGameObject(GameObject):
         if self.network_manager.is_server:
             self.network_manager.broadcast(sync_data)
 
-    def add_network_child(self, child):
+    def add_network_child(self, child, layer=None):
         """このオブジェクトに子オブジェクトを追加し、ネットワークに通知"""
-        self.add_child(child)
+        if not layer:
+            layer = child.layer
+        self.add_child(child, layer)
         self.sync_state()  # **親子関係が変わるため同期**
         data = {
             "type": "add_network_child",
@@ -99,7 +101,7 @@ class NetworkGameObject(GameObject):
             "child_class": child.__class__.__name__,
             "child_name": child.name,
             "steam_id": child.steam_id,
-            "layer": child.layer  # **子オブジェクトの layer も同期**
+            "layer":  layer # **子オブジェクトの layer も同期**
         }
         
         if self.network_manager.is_server:
