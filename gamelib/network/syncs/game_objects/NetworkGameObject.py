@@ -2,6 +2,7 @@ from ....game.game_object.GameObject import GameObject
 from ...NetworkManager import NetworkManager
 from ..components.NetworkTransform import NetworkTransform
 from ..components.NetworkComponent import NetworkComponent
+from ...NetworkObjectFactory import NetworkObjectFactory
 
 class NetworkGameObject(GameObject):
     def __init__(self, name="network_object", active=True, parent=None, network_id=None, steam_id=None):
@@ -33,7 +34,10 @@ class NetworkGameObject(GameObject):
         self.scene = self.network_manager.scene_manager.current_scene
 
     def get_network_components(self):
-        return [component for component in self.components if isinstance(component, NetworkComponent)]
+        """NetworkComponent を継承したコンポーネントのみ取得"""
+        network_components = [comp for comp in self.components.values() if isinstance(comp, NetworkComponent)]
+        return network_components
+
 
     def receive_message(self, message):
         """ネットワークメッセージを受信"""
@@ -56,6 +60,13 @@ class NetworkGameObject(GameObject):
         # **強制同期メッセージを受信**
         if t == "force_sync_network_game_objects_components":
             self.force_sync()
+
+        # **子オブジェクトの追加を受信**
+        if t == "add_network_child":
+            self.handle_add_network_child(message)
+        if t == "remove_network_child":
+            self.remove_network_child(message["network_id"])
+        
 
     def force_sync(self):
         """強制的に全ネットワークコンポーネントを同期"""
@@ -90,12 +101,14 @@ class NetworkGameObject(GameObject):
             "steam_id": child.steam_id,
             "layer": child.layer  # **子オブジェクトの layer も同期**
         }
+        
         if self.network_manager.is_server:
             self.network_manager.broadcast(data)
         return child
 
     def remove_network_child(self, child):
-        """子オブジェクトを削除し、クライアントに通知"""
+        if isinstance(child, int):
+            child = self.get_network_child(child)
         if child in self.children:
             self.children.remove(child)
 
@@ -106,6 +119,39 @@ class NetworkGameObject(GameObject):
             }
             if self.network_manager.is_server:
                 self.network_manager.broadcast(data)
+    def get_network_child(self, network_id):
+        for child in self.children:
+            if isinstance(child, NetworkGameObject):
+                if child.network_id == network_id:
+                    return child
+    
+    def handle_add_network_child(self, message):
+        """ネットワーク経由で子オブジェクトを追加"""
+        parent_id = message.get("parent_id")
+        child_id = message.get("child_id")
+        child_class_name = message.get("child_class")
+        child_name = message.get("child_name")
+        steam_id = message.get("steam_id")
+        layer = message.get("layer")
+
+        parent_obj = self.network_manager.scene_manager.current_scene.get_network_object(parent_id)
+
+        if not parent_obj:
+            print(f"⚠️ Parent object {parent_id} not found, cannot add child {child_name} ({child_id})")
+            return
+
+        # **`NetworkObjectFactory` を使って子オブジェクトを生成**
+        child_obj = NetworkObjectFactory.create_object(child_class_name, child_name, child_id, steam_id)
+
+        if not child_obj:
+            print(f"⚠️ Failed to create object {child_name} of type {child_class_name}")
+            return
+
+        # **親オブジェクトに子オブジェクトを追加**
+        child_obj.layer = layer  # **layer を同期**
+        parent_obj.add_network_child(child_obj)
+
+        print(f"✅ Added child {child_name} ({child_id}) to parent {parent_id}")
 
     def update(self, dt):
         """毎フレーム実行: 状態の変化を監視し、必要なら同期"""
