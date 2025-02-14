@@ -254,6 +254,29 @@ class SteamNetworking:
                 print(f"⚠️ Received empty message from {sender_id.value}")
         return None, None
 
+    def _handle_incoming_fragment(self, fragment):
+        """受信したフラグメントを結合し、完全なメッセージを復元"""
+        fragment_id = fragment["fragment_id"]
+        index = fragment["fragment_index"]
+        total_fragments = fragment["total_fragments"]
+
+        if fragment_id not in self.fragment_buffer:
+            self.fragment_buffer[fragment_id] = [None] * total_fragments
+
+        self.fragment_buffer[fragment_id][index] = fragment["data"]
+
+        # すべての断片が揃ったかチェック
+        if all(part is not None for part in self.fragment_buffer[fragment_id]):
+            complete_json_str = "".join(self.fragment_buffer[fragment_id])  # JSON文字列の結合
+            del self.fragment_buffer[fragment_id]
+
+            try:
+                return json.loads(complete_json_str)
+            except Exception as e:
+                print(f"⚠️ Error in fragment decoding: {e}")
+                return None
+
+        return None
 
 
 
