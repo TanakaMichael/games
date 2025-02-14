@@ -21,7 +21,8 @@ class Block(NetworkGameObject):
         if self.network_manager.is_server:
             self.network_manager.broadcast({"type": "block_position_x", "network_id": self.network_id, "value": self.position.x})
             self.network_manager.broadcast({"type": "block_position_y", "network_id": self.network_id, "value": self.position.y})
-            self.network_manager.broadcast({"type": "block_image_path", "network_id": self.network_id, "value": self.image_path})
+            if image_path:
+                self.network_manager.broadcast({"type": "block_image_path", "network_id": self.network_id, "value": image_path})
 
     def set_transform_position(self, size, final_position):
         self.transform.set_local_position(pygame.Vector3(final_position.x * size, final_position.y * size, 0))
