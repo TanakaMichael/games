@@ -62,9 +62,9 @@ class NetworkGameObject(GameObject):
             self.force_sync()
 
         # **子オブジェクトの追加を受信**
-        if t == "add_network_child":
+        if t == "add_network_child" and message.get("parent_id") == self.network_id:
             self.handle_add_network_child(message)
-        if t == "remove_network_child":
+        if t == "remove_network_child" and message.get("parent_id") == self.network_id:
             self.remove_network_child(message["network_id"])
         
 
@@ -115,7 +115,8 @@ class NetworkGameObject(GameObject):
             self.sync_state()  # **親子関係が変わるため同期**
             data = {
                 "type": "remove_network_child",
-                "network_id": child.network_id
+                "network_id": child.network_id,
+                "parent_id": self.network_id
             }
             if self.network_manager.is_server:
                 self.network_manager.broadcast(data)
@@ -134,12 +135,6 @@ class NetworkGameObject(GameObject):
         steam_id = message.get("steam_id")
         layer = message.get("layer")
 
-        parent_obj = self.network_manager.scene_manager.current_scene.get_network_object(parent_id)
-
-        if not parent_obj:
-            print(f"⚠️ Parent object {parent_id} not found, cannot add child {child_name} ({child_id})")
-            return
-
         # **`NetworkObjectFactory` を使って子オブジェクトを生成**
         child_obj = NetworkObjectFactory.create_object(child_class_name, child_name, child_id, steam_id)
 
@@ -149,7 +144,7 @@ class NetworkGameObject(GameObject):
 
         # **親オブジェクトに子オブジェクトを追加**
         child_obj.layer = layer  # **layer を同期**
-        parent_obj.add_network_child(child_obj)
+        self.add_child(child_obj)
 
         print(f"✅ Added child {child_name} ({child_id}) to parent {parent_id}")
 
