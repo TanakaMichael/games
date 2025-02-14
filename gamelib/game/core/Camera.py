@@ -64,16 +64,17 @@ class Camera(GameObject):
         カメラの transform（中心）を基準として、ワールド座標をスクリーン座標に変換。
         """
         center = self.transform.get_local_position()
+        scale_factor = self.canvas.get_scale_factor()
         rel = pygame.Vector2(world_position.x - center.x, world_position.y - center.y)
         lb_scale = self.get_letterbox_scale()
 
         # 深度（z）の取得とスケール計算
         z = world_position.z if hasattr(world_position, 'z') else 0
-        depth_scale = 1 / (1 + self.depth_constant * z) if z >= 0 else 1 + (self.depth_constant * abs(z))
+        depth_scale = (1 / (1 + self.depth_constant * z) if z >= 0 else 1 + (self.depth_constant * abs(z)))
 
         # 座標変換（ズーム・スケール適用）
-        screen_x = rel.x * self.zoom * lb_scale.x * depth_scale
-        screen_y = rel.y * self.zoom * lb_scale.y * depth_scale
+        screen_x = rel.x * self.zoom * lb_scale.x * depth_scale * scale_factor.x
+        screen_y = rel.y * self.zoom * lb_scale.y * depth_scale * scale_factor.y
 
         # 深度オフセット
         screen_y += z * 5  
@@ -82,6 +83,8 @@ class Camera(GameObject):
         lb_rect = self.get_letterbox_rect()
         screen_x += lb_rect.centerx
         screen_y += lb_rect.centery
+
+        depth_scale = depth_scale * scale_factor.x
 
         return pygame.Vector2(int(screen_x), int(screen_y)), depth_scale
 

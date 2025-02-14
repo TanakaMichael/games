@@ -8,7 +8,7 @@ class TestGame:
     """デバッグ用のgame"""
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((1920, 1080), pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode((1920*1.2, 1080*1.2), pygame.DOUBLEBUF)
 
         self.clock = pygame.time.Clock()
         self.running = True
