@@ -17,6 +17,7 @@ class Block(NetworkGameObject):
             self.position = pygame.Vector2(-9999, -9999)
             self._position = pygame.Vector2(-9999, -9999)
         self.is_wall = is_wall
+        self._size = size
 
     def set_transform_position(self, size, final_position):
         self.transform.set_local_position(pygame.Vector3(final_position.x * size, final_position.y * size, 0))

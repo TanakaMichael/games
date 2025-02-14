@@ -147,9 +147,6 @@ class NetworkManager(Global):
         self.coroutine_manager.clear()
 
         self.global_event_manager.trigger_event("SelfLobbyLeave")
-
-        # NetworkManager のリセット
-        NetworkManager._instance = None
         print("✅ ネットワーク状態をリセットしました。")
 
 
