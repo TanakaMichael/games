@@ -50,7 +50,7 @@ class NetworkGameObject(GameObject):
             self.active = message.get("active", self.active)
             self.steam_id = message.get("steam_id", self.steam_id)
             self.layer = message.get("layer", self.layer)  # **layer を同期**
-            self.parent = self.network_manager.get_object_by_id(message.get("parent_id"))
+            self.parent = self.network_manager.get_network_object(message.get("parent_id"))
 
         # **強制同期メッセージを受信**
         if t == "force_sync_network_game_objects_components":
