@@ -5,6 +5,7 @@ import threading
 import json
 import zlib
 import base64
+import re
 class SteamNetworking:
     def __init__(self, dll_path="SteamNetworkingWrapper.dll"):
         self.dll_path = os.path.abspath(dll_path)
@@ -220,8 +221,8 @@ class SteamNetworking:
         return self._send_p2p_message(steam_id, message)
 
     # 断片サイズなどの定数は別途定義されているものとする
-
     def receive_p2p_message(self, buffer_size=1024):
+        """P2Pメッセージを受信し、Base64デコードで復元"""
         buffer = ctypes.create_string_buffer(buffer_size)  # 受信用バッファ
         sender_id = ctypes.c_uint64(0)  # 送信者ID格納用
 
@@ -230,32 +231,39 @@ class SteamNetworking:
             # 受信したデータが空でないかチェック
             if buffer.value and buffer.value != b'\x00' * buffer_size:
                 try:
-                    # まず、受信したバイト列をUTF-8で文字列に変換
+                    # UTF-8 でデコード
                     encoded_str = buffer.value.decode('utf-8', errors='replace').strip('\x00')
-                except Exception as e:
-                    print(f"📩 Raw Buffer Value: {buffer.value}")
 
-                    print(f"⚠️ Decode error: {e}")
-                    return None, sender_id.value
+                    # 受信データのデバッグログ
+                    print(f"📩 Raw Buffer Value: {encoded_str}")
 
-                # ここで、送信時に圧縮とbase64エンコードしているため、復元する
-                try:
-                    # base64デコードして圧縮済みデータを取り出す
-                    compressed_data = base64.b64decode(encoded_str)
-                    # zlibで解凍して元のJSON文字列に戻す
-                    json_str = zlib.decompress(compressed_data).decode('utf-8')
-                    # JSON文字列をオブジェクトにパースする
+                    # Base64デコード前に不要な文字を除去 (改行など)
+                    clean_encoded_str = re.sub(r'[^A-Za-z0-9+/=]', '', encoded_str)
+
+                    # Base64パディング補正
+                    padding = 4 - (len(clean_encoded_str) % 4)
+                    if padding and padding != 4:
+                        clean_encoded_str += "=" * padding
+
+                    # Base64デコード
+                    json_str = base64.b64decode(clean_encoded_str).decode('utf-8')
+
+                    # JSONパース
                     message = json.loads(json_str)
-                except Exception as e:
-                    print(f"📩 Raw Buffer Value: {buffer.value}")
-                    print(f"⚠️ Decompression/JSON decode error: {e}")
-                    return None, sender_id.value
 
-                print(f"📩 Received from {sender_id.value}: {message}")
-                return message, sender_id.value
+                    # 成功時のログ
+                    print(f"📩 Received from {sender_id.value}: {message}")
+
+                    return message, sender_id.value
+
+                except Exception as e:
+                    print(f"⚠️ Base64 Decode/JSON parse error: {e}")
+                    print(f"⚠️ Encoded String: {encoded_str}")
+                    return None, sender_id.value
             else:
                 print(f"⚠️ Received empty message from {sender_id.value}")
         return None, None
+
 
 
 
